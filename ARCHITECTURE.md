@@ -18,12 +18,13 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Add or promote an experiment | `INV-EXPERIMENT`, `CTR-EXPERIMENT` | `src/lib/experiments/`; reference status requires checkpoint hashes |
 | Add a derived state/epoch marker | `PRIM-MARKER`, `CTR-MARKER`, `TIME-*` | authored predicate, ordinary facts, history projection, then vocabulary |
 | Add a lineage image/model | `INV-ARTIFACT`, `CTR-ARTIFACT` | future artifact package; never place renderers in the core |
-| Integrate with SSE | `BOUND-SSE`, `CTR-ENV`, `CTR-VIEW`, `CTR-SIGNATURE` | adapter package when it exists; SSE remains read-only here |
+| Validate or evolve SSE datasets | `CTR-ENV`, `CTR-RUN`, `DEC-016` | `docs/ENGINE_MAP.md`, `src/lib/contracts/` and fixture tests |
+| Integrate with SSE | `BOUND-SSE`, `CTR-ENV`, `CTR-VIEW`, `CTR-SIGNATURE` | compatibility contracts first; adapter package when it exists; SSE remains read-only here |
 | Add alien chemistry | `BOUND-CHEM`, `PRIM-CAP`, `CTR-ENV`, `EXT-CHEM` | chemistry data packs when they exist |
 | Add civilisation/technology | `BOUND-TECH`, `CTR-HANDOFF`, `CTR-SIGNATURE` | future technosphere package |
 | Change time stepping | `INV-DET`, `INV-TIME`, `LOOP-*` | `src/lib/core/simulate.ts` |
 | Add scientific references | `REF-*` | `docs/REFERENCES.md` |
-| Plan next work | `MILESTONE-*`, `OPEN-*` | `docs/HIGH_LEVEL_DESIGN.md` for rationale |
+| Plan next work | `MILESTONE-*`, `OPEN-*` | `docs/ENGINE_MAP.md` for ownership, then `docs/HIGH_LEVEL_DESIGN.md` for rationale |
 
 ## 1. Objective and boundary
 
@@ -92,7 +93,7 @@ These constraints are more stable than any implementation.
 | ID | Primitive | Meaning | Current status |
 |---|---|---|---|
 | `PRIM-RESOURCE` | Resource/reservoir | Material or usable environmental quantity with units and location | simplified prototype |
-| `PRIM-GRADIENT` | Energy gradient | Accessible disequilibrium that a capability can exploit | light represented; general form planned |
+| `PRIM-GRADIENT` | Energy gradient | Accessible disequilibrium that a capability can exploit | scalar runtime prototype; seeded SSE spectral compatibility fixture implemented |
 | `PRIM-HABITAT` | Habitat patch | Conditions, medium, persistence, volume/area and connectivity | named habitat only; graph planned |
 | `PRIM-LINEAGE` | Lineage node | Aggregate ancestry-bearing population or ecological guild | implemented prototype |
 | `PRIM-POP` | Population state | Biomass, productivity, stress, activity and later diversity/abundance | implemented prototype |
@@ -138,6 +139,7 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
 | `MOD-RULE-UI` | `RuleWorkshop.svelte`, `RuleEditor.svelte` | scalable rulepack authoring and validation surface | consumes rule contracts by props/callbacks | prototype |
 | `MOD-LAB` | `src/App.svelte` | experimental host, controls and composition | may use core and reusable UI | prototype |
+| `MOD-CONTRACTS` | `src/lib/contracts` | versioned external compatibility schemas, validation and generated numerical fixtures | plain TypeScript/data; no SSE runtime imports | SSE spectral v1 harness implemented |
 | `MOD-ARTIFACT` | future separate package | family-tree, morphology, 2D/3D and media recipes/renderers | consumes immutable run facts; never imported by core | planned |
 | `MOD-SSE-ADAPTER` | future separate adapter | maps SSE environment/history contracts without polluting either core | explicit versioned contracts | planned |
 | `MOD-TECH` | future separate project/package | culture, civilisation and technological inheritance | handoff + environment + signature contracts | deferred |
@@ -173,6 +175,8 @@ Required long-term habitat facts:
 - resource reservoirs and accessible energy gradients;
 - radiation and shielding;
 - aerosol populations where relevant: composition, phase, particle-size distribution, concentration, altitude, optical behaviour, production and settling.
+
+Compatibility datasets cross this boundary before a runtime adapter exists. A dataset records a schema, pinned provider revision and version, stable system/body/region IDs, master seed and named seed path, physical inputs, numerical provider output and payload hash. The implemented v1 reference fixture carries SSE surface spectral irradiance; it validates the seam but does not replace the live prototype's scalar light input.
 
 The engine returns quantitative transformation fluxes, deposits and physical changes. Tags such as `hazy`, `oxygenated` or `reef-world` are derived outputs, never the only outputs.
 
@@ -249,6 +253,7 @@ A shareable history is identified by more than its visible seed. Export:
 - named seed derivation paths and seed-derivation algorithm version;
 - engine and schema versions;
 - scenario and scientific data-pack versions;
+- external provider dataset ID, source revision and payload hash when one is used;
 - full configuration and authored override/event IDs;
 - stable system/body/region identifiers;
 - deterministic ordering/quantisation version;
@@ -345,6 +350,7 @@ Exit criteria:
 - UI components import no app stores/SSE code;
 - declarative rulepacks validate and compile deterministically at 500-entry test scale;
 - experiments remain versioned catalog content rather than being deleted after use;
+- the pinned, seeded SSE spectral reference dataset validates with its expected payload hash;
 - production build and tests pass.
 
 ### `MILESTONE-1` Microbial flask — current prototype target
@@ -432,6 +438,8 @@ Initial design target per world:
 | `DEC-013` | Preserve experiments as versioned learning and regression content. | accepted |
 | `DEC-014` | Use one authorable derived-marker mechanism for any named state or epoch; soil and other familiar milestones have no engine-level special case. | accepted |
 | `DEC-015` | Publish the project as Evolution Lab under the Apache License 2.0. | accepted |
+| `DEC-016` | Use versioned, seeded numerical datasets generated from pinned SSE revisions as compatibility fixtures; do not duplicate SSE spectral, atmosphere or pigment implementation in Evolution Lab. | accepted |
+| `DEC-017` | Expose Lab, engine, run-schema and active environment-provider versions on initial load from their authoritative sources. | accepted |
 
 ## 16. Open questions
 

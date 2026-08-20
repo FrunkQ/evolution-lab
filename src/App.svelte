@@ -13,6 +13,7 @@
   import type { EvolutionExperiment } from './lib/experiments';
   import { cloneDefaultRulePack } from './lib/rules';
   import type { RulePack } from './lib/rules';
+  import { LAB_VERSION } from './lib/version';
 
   type LabMode = 'simulation' | 'rules' | 'experiments';
 
@@ -122,6 +123,12 @@
               ? 'Author scalable, declarative rulepacks without coupling the tools to SSE or the runtime.'
               : 'Re-run, clone and compare the experiments that shaped the model.'}
         </p>
+        <div class="version-strip" aria-label="Running versions">
+          <span>Lab <strong>v{LAB_VERSION}</strong></span>
+          <span>Engine <strong>v{run.manifest.engineVersion}</strong></span>
+          <span>Schema <strong>{run.manifest.schemaVersion}</strong></span>
+          <span>Provider <strong>{run.manifest.environmentProvider}</strong></span>
+        </div>
       </div>
     </div>
 

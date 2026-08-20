@@ -1,6 +1,7 @@
 import { createRng, deriveSeed } from './rng';
 import { DEFAULT_CONFIG, LINEAGES } from './scenario';
 import { scriptedMicrocosmEnvironment } from './environment';
+import { ENGINE_VERSION, RUN_SCHEMA_VERSION } from '../version';
 import type {
   EnvironmentProvider,
   FlowRecord,
@@ -251,8 +252,8 @@ export function simulate(
       masterSeed: seed,
       scopedSeed,
       seedPath,
-      engineVersion: '0.1.0',
-      schemaVersion: 'evolution-run/0.1',
+      engineVersion: ENGINE_VERSION,
+      schemaVersion: RUN_SCHEMA_VERSION,
       scenarioId: 'microbial-flask',
       environmentProvider: `${environment.id}@${environment.version}`
     },

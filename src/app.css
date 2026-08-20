@@ -68,6 +68,9 @@ main {
 .identity { display: flex; align-items: center; gap: 1rem; }
 .identity h1 { margin: 0.15rem 0 0.32rem; font-size: clamp(1.65rem, 3vw, 2.55rem); line-height: 1.1; letter-spacing: -0.035em; }
 .identity p { max-width: 660px; margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+.version-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.65rem; }
+.version-strip span { padding: 0.22rem 0.4rem; color: var(--text-faint); background: rgba(255,255,255,0.035); border: 1px solid var(--border-soft); border-radius: 5px; font: 0.56rem var(--font-mono); }
+.version-strip strong { color: var(--text-muted); font-weight: 700; }
 .overline { color: #72d6a0; font-size: 0.67rem; font-weight: 800; letter-spacing: 0.17em; text-transform: uppercase; }
 
 .lab-mark {

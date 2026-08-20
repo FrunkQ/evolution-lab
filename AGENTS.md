@@ -4,6 +4,8 @@ Read `ARCHITECTURE.md` before changing code. It is the canonical, agent-oriented
 
 Then read only the material routed by its **Agent retrieval map**. Do not infer a design rule from the prototype UI or a test fixture when the architecture document defines it explicitly.
 
+Use `docs/ENGINE_MAP.md` to locate the single code, data and test authority for the concern before editing. Update that map when ownership or routing changes; never create a second implementation because the first one was not found.
+
 Required change discipline:
 
 1. Preserve the invariants identified as `INV-*`.
