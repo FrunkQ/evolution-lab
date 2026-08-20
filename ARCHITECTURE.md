@@ -1,0 +1,464 @@
+# Evolution Lab — canonical architecture reference
+
+> **Audience:** coding agents and maintainers.  
+> **Authority:** this file is the project’s canonical architectural context.  
+> **Status vocabulary:** `planned`, `prototype`, `implemented`, `deferred`, `authored-only`.  
+> **Last structural revision:** 2026-08-20.
+
+## 0. Agent retrieval map
+
+Use stable IDs to retrieve only the context relevant to a task.
+
+| Task | Read first | Then inspect |
+|---|---|---|
+| Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
+| Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
+| Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
+| Add or change a rule | `INV-RULEDATA`, `CTR-RULEPACK`, `EXT-*` | `src/lib/rules/`, then its tests and workshop components |
+| Add or promote an experiment | `INV-EXPERIMENT`, `CTR-EXPERIMENT` | `src/lib/experiments/`; reference status requires checkpoint hashes |
+| Add a derived state/epoch marker | `PRIM-MARKER`, `CTR-MARKER`, `TIME-*` | authored predicate, ordinary facts, history projection, then vocabulary |
+| Add a lineage image/model | `INV-ARTIFACT`, `CTR-ARTIFACT` | future artifact package; never place renderers in the core |
+| Integrate with SSE | `BOUND-SSE`, `CTR-ENV`, `CTR-VIEW`, `CTR-SIGNATURE` | adapter package when it exists; SSE remains read-only here |
+| Add alien chemistry | `BOUND-CHEM`, `PRIM-CAP`, `CTR-ENV`, `EXT-CHEM` | chemistry data packs when they exist |
+| Add civilisation/technology | `BOUND-TECH`, `CTR-HANDOFF`, `CTR-SIGNATURE` | future technosphere package |
+| Change time stepping | `INV-DET`, `INV-TIME`, `LOOP-*` | `src/lib/core/simulate.ts` |
+| Add scientific references | `REF-*` | `docs/REFERENCES.md` |
+| Plan next work | `MILESTONE-*`, `OPEN-*` | `docs/HIGH_LEVEL_DESIGN.md` for rationale |
+
+## 1. Objective and boundary
+
+`OBJ-001` Evolution Lab is a browser-first experimental engine and reusable UI for generating deterministic, explainable histories of aggregate life from resource, energy, habitat, inheritance and capability networks.
+
+`OBJ-002` The engine models lineage/guild/ecotype populations, not individual organisms and not complete genomes.
+
+`OBJ-003` Complexity emerges by composing a small set of primitives. Stable networks may wrap into higher-order nodes instead of climbing a hard-coded ladder.
+
+`BOUND-SSE` This is a separate project. Star System Explorer (SSE) will eventually provide planetary environments and consume events, fluxes, signatures, tags and view models through adapters. Evolution Lab must not import SSE stores, routes, types or browser state.
+
+`BOUND-CHEM` Origin-of-life chemistry and detailed reaction-network solvers are not part of milestone 1. An abiogenesis provider may later seed compatible initial lineage nodes.
+
+`BOUND-TECH` Cumulative culture and technology are a later, parallel technosphere simulator. The biological engine hands off when information and capabilities persist through external memory and intentional design. Highly speculative entities such as “energy beings” are `authored-only` scenario content.
+
+`BOUND-SCALE` Continuous individual-based evolution, base-pair genomes, global fluid dynamics and continuous billion-year N-body integration are outside the intended browser scope.
+
+## 2. Canonical formulation
+
+`FORM-001`
+
+> The evolutionary model is not one tree. It is a recursive population of lineage-nodes simultaneously participating in ancestry, resource, habitat and capability networks. Stable networks can wrap themselves into higher-order nodes, which is how complexity emerges without requiring a hard-coded ladder.
+
+`FORM-002`
+
+```text
+material inputs
++ accessible free-energy gradient
++ capabilities/catalysts
++ suitable environment
+→ maintenance + biomass + reproduction + activity
+→ offspring + waste + remains + heat + environmental change
+```
+
+Energy establishes physical opportunity. Fitness is persistence and reproductive success, not global energy efficiency. Drift, costly display, parasitism, speed/yield trade-offs and historical contingency must remain possible.
+
+## 3. Invariants
+
+These constraints are more stable than any implementation.
+
+| ID | Invariant |
+|---|---|
+| `INV-MATTER` | Matter changes reservoirs through recorded transformations. A missing source or sink is an error or an explicitly declared open boundary. |
+| `INV-ENERGY` | Useful free energy is consumed and ultimately dissipated; it is not indefinitely recycled as matter is. |
+| `INV-FITNESS` | Selection acts on persistence and reproduction under local conditions, not on a universal progress or efficiency score. |
+| `INV-TRADEOFF` | Capabilities have prerequisites, costs, constraints or contextual disadvantages. Trait loss is valid. |
+| `INV-AGGREGATE` | Default simulation units are aggregate populations/lineages/guilds, not individuals. |
+| `INV-SPACE` | Habitat is a graph of patches and transport links, not a single global percentage. |
+| `INV-DET` | Same engine version + configuration + seed + authored inputs must produce the same history. |
+| `INV-SEED` | One master system seed is the root of all randomness. Modules use stable named derived streams, never an order-dependent shared random sequence. |
+| `INV-TIME` | Stable intervals may be compressed; interesting transitions may be resolved in detail without changing declared significant outcomes. |
+| `INV-CAUSE` | Material population changes, innovations and extinctions retain inspectable causal provenance. |
+| `INV-REAL-DATA` | Store reusable physical, chemical or ecological facts. Derive visual adjectives, tags and prose from them. |
+| `INV-LAYERS` | Chemistry is source truth; ecology is functional interpretation; story is a presentation projection. |
+| `INV-SIGNATURE` | Any process may alter the present and contribute to future evidence through the generalized signature system. |
+| `INV-UI` | Evolution Lab and SSE use the same reusable evolutionary UI components. The lab is a host, not a throwaway mock-up. |
+| `INV-CORE` | The simulation core is framework-neutral and has no Svelte, DOM, route, SSE or persistence dependency. |
+| `INV-VERSION` | Persisted runs and cross-project contracts carry schema and engine versions before public integration. |
+| `INV-RULEDATA` | Shareable rulepacks are declarative data. Runtime code never imports the authoring UI, and packs do not execute arbitrary JavaScript. |
+| `INV-EXPERIMENT` | Experiments are versioned project memory. Reference experiments include sufficient inputs and hashes to reproduce and diagnose their histories. |
+| `INV-ARTIFACT` | Visual and structural artifacts are deterministic derived products with source provenance; they are not canonical biological state. |
+| `INV-MARKER` | Named milestones are authorable predicates over ordinary state. A marker observes/materialises state; it never creates special-case physics or biology merely because it has a famous label. |
+
+## 4. Domain primitives
+
+| ID | Primitive | Meaning | Current status |
+|---|---|---|---|
+| `PRIM-RESOURCE` | Resource/reservoir | Material or usable environmental quantity with units and location | simplified prototype |
+| `PRIM-GRADIENT` | Energy gradient | Accessible disequilibrium that a capability can exploit | light represented; general form planned |
+| `PRIM-HABITAT` | Habitat patch | Conditions, medium, persistence, volume/area and connectivity | named habitat only; graph planned |
+| `PRIM-LINEAGE` | Lineage node | Aggregate ancestry-bearing population or ecological guild | implemented prototype |
+| `PRIM-POP` | Population state | Biomass, productivity, stress, activity and later diversity/abundance | implemented prototype |
+| `PRIM-CAP` | Capability | Heritable or transferable transformation/interaction ability with costs | descriptive prototype |
+| `PRIM-TRANSFORM` | Transformation | Typed inputs + gradient + capability → outputs + heat + effects | procedural prototype; data form planned |
+| `PRIM-EDGE` | Typed relationship | Ancestry, resource, habitat, dependency, transfer or composition relation | ancestry/resource implemented in view |
+| `PRIM-EVENT` | Event | Dated causal transition or disturbance | implemented prototype |
+| `PRIM-EPOCH` | Epoch | Stable regime bounded by significant transitions | planned |
+| `PRIM-MARKER` | Derived state marker | Authorable named predicate over ordinary facts, optionally persistent and projected as an event/epoch | contract defined; evaluator planned |
+| `PRIM-SIGNATURE` | Signature contribution | Active effect or preserved environmental memory produced by any source | three-field prototype |
+| `PRIM-WRAPPER` | Higher-order node | Stable lower-node network treated as a new evolutionary individual | planned |
+| `PRIM-EVIDENCE` | Observation | Detectable subset and interpretation of surviving signatures | planned |
+| `PRIM-RULEPACK` | Rulepack | Declarative, versioned possibility definitions compiled into immutable runtime indexes | compiler implemented; runtime wiring planned |
+| `PRIM-EXPERIMENT` | Experiment | Reproducible question, inputs, checkpoints, observations and lessons | catalog/UI prototype |
+| `PRIM-ARTIFACT` | Artifact recipe | Deterministic derived morphology/tree/media request with provenance and content hash | planned |
+
+## 5. Four simultaneous networks
+
+The UI may present a “tree”, but the stored model is a graph with typed lenses.
+
+| Network | Primary question | Typical edges |
+|---|---|---|
+| Ancestry | What descended from what? | descent, split, hybridisation, designed successor |
+| Resource | Who transforms or exchanges what? | consume, emit, prey, recycle, mutual exchange |
+| Habitat | Where can it persist and move? | occupies, disperses, blocked by, engineers |
+| Capability | Where did an ability arise and travel? | mutation, convergence, horizontal transfer, viral shuttle, symbiosis |
+
+Composition is an additional relation used when a stable network wraps into a cell, organism, colony, society or machine ecology.
+
+## 6. Module map
+
+| ID | Module | Responsibility | Dependency rule | Status |
+|---|---|---|---|---|
+| `MOD-CORE` | `src/lib/core` | Pure deterministic types, seeded simulation, environment-provider harness, history and description inputs | may depend only on plain TypeScript/data | prototype |
+| `MOD-CHEM` | future `src/lib/chemistry` | solvents, stoichiometry, accessible gradients and compatibility | core contracts only | planned |
+| `MOD-ECOLOGY` | future core subdivision | populations, sparse resource network, habitats and disturbances | core + chemistry contracts | prototype embedded in `simulate.ts` |
+| `MOD-LINEAGE` | future core subdivision | variation, inheritance, split/merge/transfer and major transitions | core contracts | planned |
+| `MOD-HISTORY` | future core subdivision | events, epochs, checkpoints, causal graph and authored overrides | core contracts | event prototype |
+| `MOD-SIGNATURE` | future core subdivision | active effects, transport, preservation, detection and interpretation | environment + history contracts | minimal prototype |
+| `MOD-DESC` | `src/lib/core/describe.ts` | derive chemistry/ecology/story wording from facts | read-only core models | prototype |
+| `MOD-RULES` | `src/lib/rules` | rulepack types, validation, canonical checksum, compilation and indexes | plain TypeScript/data; no Svelte or SSE | implemented authoring boundary |
+| `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog and learning metadata | depends on contracts, not app state | prototype |
+| `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
+| `MOD-RULE-UI` | `RuleWorkshop.svelte`, `RuleEditor.svelte` | scalable rulepack authoring and validation surface | consumes rule contracts by props/callbacks | prototype |
+| `MOD-LAB` | `src/App.svelte` | experimental host, controls and composition | may use core and reusable UI | prototype |
+| `MOD-ARTIFACT` | future separate package | family-tree, morphology, 2D/3D and media recipes/renderers | consumes immutable run facts; never imported by core | planned |
+| `MOD-SSE-ADAPTER` | future separate adapter | maps SSE environment/history contracts without polluting either core | explicit versioned contracts | planned |
+| `MOD-TECH` | future separate project/package | culture, civilisation and technological inheritance | handoff + environment + signature contracts | deferred |
+
+Target dependency direction:
+
+```text
+planet/environment provider ──CTR-ENV──▶ evolution core
+planet/environment provider ◀─fluxes─── evolution core
+                                          │
+                                          ├─CTR-HISTORY──▶ timeline consumers
+                                          ├─CTR-SIGNATURE▶ evidence/observer systems
+                                          └─CTR-VIEW─────▶ shared Svelte UI
+
+Evolution Lab shell ─┐
+                     ├── mounts the same shared UI components
+SSE adapter/shell ───┘
+```
+
+## 7. Contracts
+
+### `CTR-ENV` Environment provider
+
+Required long-term habitat facts:
+
+- stable `bodyId`, `regionId`, `habitatId`;
+- medium and phase;
+- temperature/pressure ranges and variability;
+- volume, surface area, persistence and connectivity;
+- mixing, concentration and transport rates;
+- periodic cycles: day/night, wet/dry, freeze/thaw, tides, seasons;
+- catalytic/mineral surfaces;
+- resource reservoirs and accessible energy gradients;
+- radiation and shielding;
+- aerosol populations where relevant: composition, phase, particle-size distribution, concentration, altitude, optical behaviour, production and settling.
+
+The engine returns quantitative transformation fluxes, deposits and physical changes. Tags such as `hazy`, `oxygenated` or `reef-world` are derived outputs, never the only outputs.
+
+### `CTR-HISTORY` History output
+
+Every significant event has:
+
+- stable ID and timestamp/interval;
+- event kind;
+- affected entity IDs;
+- causes and prerequisites;
+- quantitative deltas or references to snapshot deltas;
+- confidence/provenance (`simulated`, `authored`, later `inferred`);
+- optional links to the signature contributions it created.
+
+Long quiet spans become epochs with summary curves and checkpoints. Event windows retain denser resolution.
+
+### `CTR-SIGNATURE` Generalized environmental memory
+
+Any lineage, geological process, astronomical event or technology may emit a signature contribution:
+
+```text
+source activity
+→ active environmental effect
+→ transport / reaction / mixing
+→ residue or structural change
+→ preservation / destruction
+→ observable evidence
+→ interpretation
+```
+
+Planned channels include chemical, isotopic, mineralogical, biological, structural, spectral, orbital, electromagnetic and informational. Most evidence is stored as regional fields/deposits; exceptional artifacts may be discrete objects.
+
+The system must distinguish:
+
+1. true history;
+2. surviving evidence at a date;
+3. what a given observer can detect;
+4. plausible interpretations and natural false positives.
+
+### `CTR-VIEW` Reusable view model
+
+UI components receive plain serializable values and callback props. They do not import Lab or SSE stores. Minimum view data:
+
+- selected time and available time range;
+- active/inactive lineage nodes;
+- typed edges for the selected lens;
+- population measures;
+- events and causal explanations;
+- environment/resource ledger;
+- signatures;
+- vocabulary layer.
+
+Components use CSS variables compatible with SSE’s design tokens and remain themeable by a host.
+
+### `CTR-HANDOFF` Biological-to-technosphere seam
+
+Candidate trigger capabilities:
+
+- persistent learning;
+- social transmission;
+- cumulative culture;
+- external tools;
+- durable external memory;
+- intentional design and autonomous manufacture.
+
+The technosphere adds cultural, designed and software inheritance while continuing to use resource, energy, environment, history and signature contracts. A singularity is a scenario boundary, not a claim that long-term outcomes can be predicted mechanistically.
+
+### `CTR-RUN` Deterministic reproduction manifest
+
+A shareable history is identified by more than its visible seed. Export:
+
+- master system seed;
+- named seed derivation paths and seed-derivation algorithm version;
+- engine and schema versions;
+- scenario and scientific data-pack versions;
+- full configuration and authored override/event IDs;
+- stable system/body/region identifiers;
+- deterministic ordering/quantisation version;
+- optional checkpoint hashes for divergence diagnosis.
+
+Named streams are derived as `master seed + stable path`, for example `planet/body-7/evolution/innovation-v1`. No subsystem consumes a mutable global RNG shared with another subsystem. Adding a new stellar decoration must not reshuffle a planet’s biosphere.
+
+### `CTR-RULEPACK` Declarative rulepack
+
+A rulepack carries a namespaced ID, semantic/schema/engine versions, dependency list, seed namespace and declarative rule entries. Validation rejects duplicate or malformed IDs and unresolved prerequisites. Compilation uses stable priority/ID ordering, constructs indexes by kind/dependency/observed fact and calculates a canonical checksum independent of input order.
+
+The runtime receives only a validated immutable compiled pack. Draft state, selection, search and validation UI remain in the Rule Workshop. Shareable packs do not contain executable JavaScript. Future extension/replacement semantics and archive layout are specified before third-party packs are accepted. See `docs/RULEPACK_AND_LAB_ARCHITECTURE.md`.
+
+### `CTR-EXPERIMENT` Reproducible experiment
+
+An experiment records stable identity/version/status, questions, master seed, provider and pack versions, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires expected checkpoint hashes and promotes the experiment to a regression fixture. Retired experiments remain readable.
+
+### `CTR-MARKER` Authorable derived state and epoch marker
+
+A marker definition is a generic rulepack component. It names a predicate over calculated facts, optional minimum duration, retention thresholds/loss duration, significance scoring, emitted derived facts and three-layer vocabulary. Its history projection may emit approaching/entered/leaving/left transitions with causal evidence. Optional hysteresis prevents threshold noise from flickering state.
+
+Markers do not implement the systems they describe. Ordinary resource, habitat, transformation and capability rules create consequences. Downstream rules may depend on a materialised marker fact as a convenient abstraction, but the same state must remain explainable through its source facts. A pack could author `surface/substrate-detrital-established`, `atmosphere/oxygen-buffered` or `culture/external-memory-persistent` without the engine knowing what soil, oxygenation or civilisation is.
+
+These states can expand available resources, gradients, niches, population sizes and lineage coexistence, thereby increasing evolutionary opportunity. Production of genetic variation—mutation, recombination, transfer and other mechanisms—remains a separate process rather than an effect of the label itself.
+
+### `CTR-ARTIFACT` Derived artifact
+
+An artifact request identifies the run manifest, lineage/entity ID, time, artifact kind, renderer/data versions and named artifact seed path. Results carry source provenance and a content hash. Morphology is inherited as a recipe plus explicit deltas, allowing family resemblance across 2D and 3D renderers. External generated imagery is presentation data unless its exact bytes/hash are attached.
+
+## 8. Engine loop
+
+`LOOP-001` Conceptual step:
+
+1. Read environment and open-boundary inputs.
+2. Calculate accessible gradients and limiting resources.
+3. Apply maintenance, transformation, growth, death and dispersal.
+4. Route waste and remains into reservoirs.
+5. Apply ecological interactions over sparse edges.
+6. Apply variation, transfer, selection, drift and lineage changes when enabled.
+7. Update environment-facing fluxes and signatures.
+8. Detect significant transitions and record causal events.
+9. Decide whether the next interval can be compressed or requires detail.
+10. Emit snapshot/checkpoint/view data.
+
+`LOOP-002` Current prototype simplification: one habitat, daily fixed steps, four predefined lineage definitions, procedural transformations and three accumulated signature quantities. Physical forcing already arrives through a swappable deterministic `EnvironmentProvider`; its current implementation is a scripted harness. This is evidence for the contracts, not the final solver architecture.
+
+## 9. Temporal and spatial strategy
+
+`TIME-001` A simulation alternates between slow drift/equilibrium and detailed transition windows. External shocks and internal innovations can both open a detailed window.
+
+`TIME-002` Evolutionary opportunity depends on turnover/generation time, population size/diversity, accessible variation and duration—not elapsed years alone.
+
+`TIME-003` Coupled histories use a shared simulation clock and committed checkpoints. The star/planet provider owns physical environmental truth; Evolution Lab owns living state and biological fluxes; a coordinator selects the next common boundary and commits both outputs. See `docs/SSE_TIMELINE_REQUIREMENTS.md`.
+
+`TIME-004` Timeline prominence is calculated from persistence, reach, downstream dependency count, carrying-capacity change, feedback strength and reversibility. Pack vocabulary names the result; Earth-specific famous-epoch lists do not control it.
+
+`SPACE-001` Planned habitats form a sparse dynamic graph. Edges have transport rates, selectivity and time-dependent barriers. This supports refugia, founder effects, recolonisation, surface/subsurface separation and independent origins meeting.
+
+## 10. Major transitions and recursive nodes
+
+`WRAP-001` A network may be represented as a higher-order lineage only when the model records sufficient persistence, coordinated reproduction/inheritance, mutual dependence and suppression/management of internal conflict.
+
+`WRAP-002` Wrapping is reversible in principle. A coalition can fail, a mutualist can become parasitic, and a complex lineage can lose delegated capabilities.
+
+`WRAP-003` Life stages remain subprofiles of a lineage unless they carry independent ancestry. Different stages may occupy different habitats and resource networks.
+
+## 11. Vocabulary and presentation
+
+`VOCAB-001` One underlying fact set produces three layers:
+
+- **Chemistry:** exact materials, gradients, reactions, tolerances and fluxes.
+- **Ecology:** producer, grazer, aerial habitat, detritivore, mutualist, stress.
+- **Story:** plausible, evocative language suitable for exploration and role-playing.
+
+`VOCAB-002` Story text may use an explicit analogy (“roughly analogous to”) but must not overwrite alien chemistry with Earth taxonomy.
+
+`UI-001` The interactive tree retains time, selection and node position while switching ancestry/resource/capability/habitat lenses.
+
+`UI-002` The critical inspection action is “Why?”: cause, constraint, enabling capability, competitors, effects and subsequent planetary changes.
+
+`UI-003` The Rule Workshop and Experiment Library are permanent reusable product surfaces. They must remain navigable with hundreds of rules/experiments through search, filters, paging/virtualisation and dependency views.
+
+## 12. Milestones
+
+### `MILESTONE-0` Skeleton — current
+
+Goal: repository shape, canonical documentation, deterministic framework-neutral core, reusable component boundary, tests and build.
+
+Exit criteria:
+
+- `AGENTS.md` and this architecture reference exist;
+- same seed yields identical run;
+- no negative prototype ledgers;
+- UI components import no app stores/SSE code;
+- declarative rulepacks validate and compile deterministically at 500-entry test scale;
+- experiments remain versioned catalog content rather than being deleted after use;
+- production build and tests pass.
+
+### `MILESTONE-1` Microbial flask — current prototype target
+
+Goal: prove a minimal closed ecological loop with an externally supplied light boundary.
+
+Mechanisms:
+
+- basal chemical replicator;
+- light-harvesting producer innovation;
+- detritus recycler;
+- direct grazer;
+- resource limitation, maintenance, growth, death and waste;
+- nutrient pulse and sustained shadow;
+- oxygen/mineral/sediment environmental memory;
+- causal event history and vocabulary layers.
+
+Explicit non-claims: scientifically calibrated rates, abiogenesis, species-level population genetics, conservation-grade mass units.
+
+### `MILESTONE-2` Changing pond
+
+Add periodic environment cycles, dormancy, plastic response, evolutionary response and extinction/recovery. Replace procedural metabolism constants with declared transformations and unit-aware ledgers.
+
+### `MILESTONE-3` Connected habitats
+
+Add patch graph, dispersal, barriers, refugia, founder effects and lineage splitting. Introduce sparse network performance budgets and Web Worker execution.
+
+### `MILESTONE-4` Evolutionary exchange
+
+Add capability prerequisites/costs, mutation supply, trait loss, horizontal transfer, virus-like obligate replicators, parasitism, mutualism, convergence and exaptation.
+
+### `MILESTONE-5` Recursive individuality
+
+Add composition networks, cooperation/conflict accounting, stable wrapper nodes and failed/reversible transitions.
+
+### `MILESTONE-6` Living planet adapter
+
+Version `CTR-ENV`, `CTR-HISTORY`, `CTR-SIGNATURE` and `CTR-VIEW`; connect to a scripted planet provider before connecting to SSE.
+
+### `MILESTONE-7` Alien chemistry packs
+
+Parameterize information polymer, structural backbone, solvent, compartments, electron donors/acceptors, catalytic elements and temperature/pressure regimes. Support compatibility/collision outcomes between independent biospheres.
+
+## 13. Performance envelope
+
+`PERF-001` Browser feasibility depends chiefly on resolution: active nodes, habitats, sparse edges, candidate innovations and temporal checkpoints—not nominal floating-point precision.
+
+Initial design target per world:
+
+- tens of habitat patches;
+- roughly 50–500 active aggregate nodes in ordinary runs;
+- thousands only in deliberately detailed laboratory scenarios;
+- sparse relationship graphs;
+- event/epoch stepping rather than generation-by-generation geological time;
+- deterministic Web Worker execution before SSE integration.
+
+## 14. Extension rules
+
+| ID | Rule |
+|---|---|
+| `EXT-001` | Prefer a new data-defined capability/transformation over a new lineage-specific branch in the engine. |
+| `EXT-002` | Before adding a calculated field, identify its physical meaning, units, producer and potential consumers. |
+| `EXT-003` | Before adding a tag, identify the quantitative facts from which it is derived. |
+| `EXT-004` | New event types must state causes, affected entities and signature consequences. |
+| `EXT-005` | New UI panels must consume `CTR-VIEW` data and remain host-independent. |
+| `EXT-CHEM` | Alternative chemistry is expressed through axes and data packs, not `if siliconLife` special cases. |
+| `EXT-AUTHORED` | Content beyond model comprehension is a named authored scenario with explicit assumptions. |
+
+## 15. Decisions
+
+| ID | Decision | State |
+|---|---|---|
+| `DEC-001` | Build Evolution Lab separately from SSE and integrate by adapter/contracts. | accepted |
+| `DEC-002` | Use Svelte 5 + TypeScript + Vite for UI compatibility; keep core plain TypeScript. | accepted |
+| `DEC-003` | Build the production-intended shared components in the lab; no throwaway visualizer. | accepted |
+| `DEC-004` | Begin with existing simple replicators, then add abiogenesis upstream. | accepted |
+| `DEC-005` | Treat signatures/environmental memory as a universal process, not a civilisation feature. | accepted |
+| `DEC-006` | Use three vocabulary layers derived from common facts. | accepted |
+| `DEC-007` | Treat technology as a new inheritance substrate and separate simulator seam. | accepted |
+| `DEC-008` | Keep “energy beings” and comparably unconstrained concepts authored-only. | accepted |
+| `DEC-009` | Drive the whole generated history from one master seed using stable named derived streams. | accepted |
+| `DEC-010` | Couple physics and evolution through a coordinator and versioned timeline frames, beginning with a scripted provider. | accepted |
+| `DEC-011` | Keep the Rule Workshop and Experiment Library as permanent reusable Lab surfaces; SSE mounts them but does not own authoring. | accepted |
+| `DEC-012` | Distribute initial modpacks as declarative, namespaced data without arbitrary JavaScript. | accepted |
+| `DEC-013` | Preserve experiments as versioned learning and regression content. | accepted |
+| `DEC-014` | Use one authorable derived-marker mechanism for any named state or epoch; soil and other familiar milestones have no engine-level special case. | accepted |
+
+## 16. Open questions
+
+| ID | Question | Earliest decision point |
+|---|---|---|
+| `OPEN-001` | Exact unit system and acceptable conservation error for open planetary boundaries? | milestone 2 |
+| `OPEN-002` | Epoch integrator: adaptive numerical stepping, equilibrium solver or hybrid event scheduler? | milestone 2 |
+| `OPEN-003` | Minimum aggregate population genetics needed for drift/speciation without genomes? | milestone 3/4 |
+| `OPEN-004` | How should a habitat graph represent overlapping media and vertical layers? | milestone 3 |
+| `OPEN-005` | Formal conflict/cooperation metrics for node wrapping? | milestone 5 |
+| `OPEN-006` | Persisted run format and schema migration policy? | before milestone 6 |
+| `OPEN-007` | Package distribution strategy for SSE: workspace package, source import or published package? | milestone 6 |
+| `OPEN-008` | Project name and licensing before public repository publication? | before first public release |
+| `OPEN-009` | Cross-browser determinism level: quantised floating point or fixed-point for conservation-critical ledgers? | milestone 2 |
+| `OPEN-010` | Exact rulepack extension, replacement and conflict semantics? | before third-party modpacks |
+| `OPEN-011` | Signing, trust, licensing and asset limits for shared modpacks? | before public sharing |
+| `OPEN-012` | Minimal universal predicate, persistence and significance schema for authored state/epoch markers? | first planet harness |
+| `OPEN-013` | Structured records, Markdown notebooks or both for experiment observations? | experiment comparison UI |
+
+## 17. Change protocol
+
+When a change modifies architecture:
+
+1. Update the relevant stable-ID section.
+2. Change status labels accurately; prototype code is not automatically `implemented` architecture.
+3. Add a `DEC-*` record if the change resolves an open choice.
+4. Add an `OPEN-*` record if it creates a consequential unresolved choice.
+5. Update tests for affected invariants.
+6. Keep human rationale in `docs/HIGH_LEVEL_DESIGN.md`; keep operational truth here.
+
+References are routed through `docs/REFERENCES.md` using `REF-*` IDs.
