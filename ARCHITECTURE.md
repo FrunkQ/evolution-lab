@@ -431,6 +431,7 @@ Initial design target per world:
 | `DEC-012` | Distribute initial modpacks as declarative, namespaced data without arbitrary JavaScript. | accepted |
 | `DEC-013` | Preserve experiments as versioned learning and regression content. | accepted |
 | `DEC-014` | Use one authorable derived-marker mechanism for any named state or epoch; soil and other familiar milestones have no engine-level special case. | accepted |
+| `DEC-015` | Publish the project as Evolution Lab under the Apache License 2.0. | accepted |
 
 ## 16. Open questions
 
@@ -443,7 +444,6 @@ Initial design target per world:
 | `OPEN-005` | Formal conflict/cooperation metrics for node wrapping? | milestone 5 |
 | `OPEN-006` | Persisted run format and schema migration policy? | before milestone 6 |
 | `OPEN-007` | Package distribution strategy for SSE: workspace package, source import or published package? | milestone 6 |
-| `OPEN-008` | Project name and licensing before public repository publication? | before first public release |
 | `OPEN-009` | Cross-browser determinism level: quantised floating point or fixed-point for conservation-critical ledgers? | milestone 2 |
 | `OPEN-010` | Exact rulepack extension, replacement and conflict semantics? | before third-party modpacks |
 | `OPEN-011` | Signing, trust, licensing and asset limits for shared modpacks? | before public sharing |

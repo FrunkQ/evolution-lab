@@ -45,4 +45,6 @@ The project is separate from Star System Explorer. No SSE code or stores are imp
 
 Rates and quantities currently use bounded experimental units and are not scientifically calibrated. The lineage definitions are predefined; the engine demonstrates activation under ecological conditions rather than open-ended mutation. The architecture explicitly marks these areas as prototypes.
 
-The package is private and no public licence has yet been selected.
+## Licence
+
+Evolution Lab is licensed under the [Apache License 2.0](LICENSE). The package remains marked as private to prevent accidental publication to npm.
