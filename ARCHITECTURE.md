@@ -3,7 +3,7 @@
 > **Audience:** coding agents and maintainers.  
 > **Authority:** this file is the project’s canonical architectural context.  
 > **Status vocabulary:** `planned`, `prototype`, `implemented`, `deferred`, `authored-only`.  
-> **Last structural revision:** 2026-08-20.
+> **Last structural revision:** 2026-08-25.
 
 ## 0. Agent retrieval map
 
@@ -14,6 +14,8 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
+| Add or change a product mode/route | `INV-PRESENTATION`, `CTR-MODE`, `DEC-018`, `DEC-020` | `src/lib/modes/catalog.ts`, its tests, then the app shell |
+| Add or change a temporal chart | `CTR-TEMPORAL-VIEW`, `DEC-019` | `src/lib/projections/temporal.ts`, its tests, then `LevelsThroughTime.svelte` |
 | Add or change a rule | `INV-RULEDATA`, `CTR-RULEPACK`, `EXT-*` | `src/lib/rules/`, then its tests and workshop components |
 | Add or promote an experiment | `INV-EXPERIMENT`, `CTR-EXPERIMENT` | `src/lib/experiments/`; reference status requires checkpoint hashes |
 | Add a derived state/epoch marker | `PRIM-MARKER`, `CTR-MARKER`, `TIME-*` | authored predicate, ordinary facts, history projection, then vocabulary |
@@ -33,6 +35,9 @@ Use stable IDs to retrieve only the context relevant to a task.
 `OBJ-002` The engine models lineage/guild/ecotype populations, not individual organisms and not complete genomes.
 
 `OBJ-003` Complexity emerges by composing a small set of primitives. Stable networks may wrap into higher-order nodes instead of climbing a hard-coded ladder.
+
+`OBJ-004` The long-term engine is domain-neutral. Biology and first-life are the first rulepack/testbed concerns; a galactic mode must use generic typed state rather than renamed biological fields.
+
 
 `BOUND-SSE` This is a separate project. Star System Explorer (SSE) will eventually provide planetary environments and consume events, fluxes, signatures, tags and view models through adapters. Evolution Lab must not import SSE stores, routes, types or browser state.
 
@@ -86,6 +91,7 @@ These constraints are more stable than any implementation.
 | `INV-RULEDATA` | Shareable rulepacks are declarative data. Runtime code never imports the authoring UI, and packs do not execute arbitrary JavaScript. |
 | `INV-EXPERIMENT` | Experiments are versioned project memory. Reference experiments include sufficient inputs and hashes to reproduce and diagnose their histories. |
 | `INV-ARTIFACT` | Visual and structural artifacts are deterministic derived products with source provenance; they are not canonical biological state. |
+| `INV-PRESENTATION` | Routes, chart visibility, hover/focus, viewport and presentation vocabulary cannot alter simulation state, event order or random draws. |
 | `INV-MARKER` | Named milestones are authorable predicates over ordinary state. A marker observes/materialises state; it never creates special-case physics or biology merely because it has a famous label. |
 
 ## 4. Domain primitives
@@ -135,6 +141,8 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-SIGNATURE` | future core subdivision | active effects, transport, preservation, detection and interpretation | environment + history contracts | minimal prototype |
 | `MOD-DESC` | `src/lib/core/describe.ts` | derive chemistry/ecology/story wording from facts | read-only core models | prototype |
 | `MOD-RULES` | `src/lib/rules` | rulepack types, validation, canonical checksum, compilation and indexes | plain TypeScript/data; no Svelte or SSE | implemented authoring boundary |
+| `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
+| `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal view types, biomass history projection, visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented prototype |
 | `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog and learning metadata | depends on contracts, not app state | prototype |
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
 | `MOD-RULE-UI` | `RuleWorkshop.svelte`, `RuleEditor.svelte` | scalable rulepack authoring and validation surface | consumes rule contracts by props/callbacks | prototype |
@@ -231,6 +239,26 @@ UI components receive plain serializable values and callback props. They do not 
 - vocabulary layer.
 
 Components use CSS variables compatible with SSE’s design tokens and remain themeable by a host.
+
+
+### `CTR-TEMPORAL-VIEW` Framework-neutral temporal projection
+
+A temporal chart receives explicit `TemporalProjection` data containing typed series, samples, units and optional markers. The implemented biology adapter projects only daily snapshot biomass and existing recorded events. Presentation styles are separate data; the renderer does not read engine state.
+
+Absolute series shown together use the same experimental biomass unit. The optional relative view is dimensionless and scales each series against its own stored-history maximum; it compares curve shape, not magnitude. Deterministic downsampling preserves boundaries, recorded marker ticks and the inspected tick. Toggling, hover/focus and keyboard inspection may change the shared UI cursor but cannot rerun or mutate the simulation.
+
+### `CTR-MODE` Installed mode and route catalogue
+
+One application and deployment expose:
+
+- `/` as the installed-mode catalogue;
+- `/biology` as the working microbial prototype;
+- `/firstlife` as an experiment scaffold until a real scenario/provider exists;
+- `/galaxy` as a domain-neutrality scaffold until a real scenario/provider exists.
+
+No `/social` route or per-mode subdomain is part of this slice. Catalogue selection and direct route loading resolve the same typed descriptor. A live descriptor identifies its scenario; a scaffold explicitly has no installed scenario/provider/domain content and cannot render fabricated results.
+
+Mode release metadata has one authority in `src/lib/modes/catalog.ts`: content version, ISO `lastUpdated`, lifecycle/status, current focus, route and scenario identity. `lastUpdated` is the last intentional user-visible mode/content edit, never wall-clock, filesystem or deployment time. Default catalogue order is descending date with stable mode-ID tie-breaking. Global Lab/Engine/Schema/Provider versions remain separate.
 
 ### `CTR-HANDOFF` Biological-to-technosphere seam
 
@@ -336,6 +364,8 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-003` The Rule Workshop and Experiment Library are permanent reusable product surfaces. They must remain navigable with hundreds of rules/experiments through search, filters, paging/virtualisation and dependency views.
 
+`UI-004` Levels Through Time is a reusable native-SVG component over `CTR-TEMPORAL-VIEW`. It supports labelled visibility controls, non-colour line/symbol distinctions, pointer and keyboard time inspection, real event markers and an explicit explanation of present non-claims.
+
 ## 12. Milestones
 
 ### `MILESTONE-0` Skeleton — current
@@ -352,6 +382,9 @@ Exit criteria:
 - experiments remain versioned catalog content rather than being deleted after use;
 - the pinned, seeded SSE spectral reference dataset validates with its expected payload hash;
 - production build and tests pass.
+- `/`, `/biology`, `/firstlife` and `/galaxy` resolve in one build without code forks;
+- the live microbial run exposes its stored aggregate biomass history through a framework-neutral projection and reusable accessible component;
+- scaffold modes visibly distinguish intended contracts from implemented simulation.
 
 ### `MILESTONE-1` Microbial flask — current prototype target
 
@@ -440,6 +473,9 @@ Initial design target per world:
 | `DEC-015` | Publish the project as Evolution Lab under the Apache License 2.0. | accepted |
 | `DEC-016` | Use versioned, seeded numerical datasets generated from pinned SSE revisions as compatibility fixtures; do not duplicate SSE spectral, atmosphere or pigment implementation in Evolution Lab. | accepted |
 | `DEC-017` | Expose Lab, engine, run-schema and active environment-provider versions on initial load from their authoritative sources. | accepted |
+| `DEC-018` | Use one route catalogue and deployment: `/`, `/biology`, `/firstlife`, `/galaxy`; scaffold routes show no fabricated simulation and no mode uses a subdomain or code fork. | accepted |
+| `DEC-019` | Project stored history into a framework-neutral temporal-series contract; render it through a presentation-only native-SVG component connected to the existing inspection cursor. | accepted |
+| `DEC-020` | Keep deterministic per-mode content version, intentional ISO last-edit date, lifecycle, focus, route and scenario identity in one typed catalogue, ordered recent-first with a stable ID tie-break. | accepted |
 
 ## 16. Open questions
 

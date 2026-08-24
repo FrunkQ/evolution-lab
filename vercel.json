@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/biology", "destination": "/" },
+    { "source": "/firstlife", "destination": "/" },
+    { "source": "/galaxy", "destination": "/" }
+  ]
+}

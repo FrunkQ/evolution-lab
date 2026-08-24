@@ -1,9 +1,10 @@
 import type { EvolutionExperiment } from './types';
+import { MICROBIAL_SCENARIO_ID, MICROBIAL_SCENARIO_VERSION } from '../core/scenario';
 
 export const EXPERIMENTS: EvolutionExperiment[] = [
   {
-    id: 'lab/microbial-flask-001',
-    version: '0.1.0',
+    id: MICROBIAL_SCENARIO_ID,
+    version: MICROBIAL_SCENARIO_VERSION,
     title: 'The first microbial flask',
     summary:
       'Tests whether producers, recyclers and grazers can form a legible resource cycle and leave persistent environmental evidence.',

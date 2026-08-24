@@ -1,14 +1,28 @@
 # Evolution Lab
 
-An experimental, browser-first engine and reusable Svelte interface for emergent evolutionary histories.
+A browser-first laboratory for deterministic, explainable histories of evolving systems.
 
-This first vertical slice is deliberately a **microbial flask**, not an abiogenesis simulator. It demonstrates a deterministic resource network in which primitive lineages discover light harvesting, detritus recycling and direct grazing; the environment is disturbed; and biological activity leaves persistent oxygenation, mineral and sediment signatures.
+> Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-The app now has three permanent work areas:
+That is the target architecture. The current `v0.3` public prototype is much smaller: one fixed-step, deterministic microbial experiment with daily snapshots and a compact event list. It does **not** yet implement a generic multigraph engine, event-sourced replay, branching/checkpoints, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
+
+## Installed modes
+
+The root route `/` is a recently-updated catalogue. It and direct route loads resolve the same version-controlled mode metadata:
+
+- `/biology` — the live microbial prototype, including its real aggregate-biomass history.
+- `/firstlife` — an honest experiment scaffold; no origin-of-life simulation is installed.
+- `/galaxy` — an honest domain-neutrality scaffold; no galaxy simulation is installed.
+
+There is one application and one deployment. Modes are paths, not subdomains or code forks. Each catalogue card shows its own content version, intentional last-edit date and lifecycle separately from the global Lab/Engine/Schema/Provider release strip.
+
+The biology workspace has three permanent areas:
 
 - **Live experiment** — explore the current seeded microbial history.
 - **Rule Workshop** — author and validate scalable declarative packs independently of the runtime and SSE.
 - **Experiment Library** — retain reproducible questions, checkpoints and lessons instead of discarding prototypes.
+
+Its reusable **Levels Through Time** view projects stored daily aggregate biomass for total active biomass and the four authored lineages. Recorded run events are markers; the chart cursor shares the timeline’s selected day. Visibility, hover and relative scaling are presentation-only and cannot alter the run.
 
 ## Start
 
@@ -17,7 +31,7 @@ npm ci
 npm run dev
 ```
 
-The initial screen displays the running Lab, engine, run-schema and environment-provider versions so a deployed test instance can be identified without opening developer tools.
+The initial screen displays Lab, engine, run-schema, provider, selected mode and scenario identities so a deployed test instance can be identified without opening developer tools.
 
 Quality checks:
 
@@ -38,6 +52,8 @@ npm run build
 - `docs/RULEPACK_AND_LAB_ARCHITECTURE.md` — rulepack, modpack, experiment, artifact and authored-marker design.
 - `src/lib/contracts` — versioned external compatibility contracts and pinned generated fixtures.
 - `src/lib/core` — deterministic framework-neutral simulation code.
+- `src/lib/modes` — single typed authority for route, lifecycle and per-mode release metadata.
+- `src/lib/projections` — framework-neutral temporal view contracts and history projections.
 - `src/lib/rules` — declarative rule types, validation and deterministic compilation/indexing.
 - `src/lib/experiments` — versioned experiments and accumulated learning.
 - `src/lib/components` — reusable Svelte components intended for both the Lab and SSE.

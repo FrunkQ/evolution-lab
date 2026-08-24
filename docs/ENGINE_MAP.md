@@ -24,8 +24,13 @@ This is a sparse routing index for agents. It points to the one authoritative co
 | Rulepacks | `src/lib/rules` | Declarative namespaced rulepack data | `src/lib/rules/rules.spec.ts` and `CTR-RULEPACK` |
 | Experiments and expected checkpoints | `src/lib/experiments` | Versioned experiment records | Experiment validation and checkpoint hashes |
 | Reusable UI | `src/lib/components` | Props/events from the app shell | Component tests when added |
+| Installed mode routes and per-mode release metadata | `src/lib/modes/catalog.ts` | Version-controlled descriptor values only; `lastUpdated` is an intentional ISO content-edit date | `src/lib/modes/catalog.spec.ts`; catalogue/direct route identity and recent-first ordering |
+| Temporal projection contract and microbial biomass adapter | `src/lib/projections/temporal.ts` | Read-only `SimulationRun.snapshots` and existing `SimulationRun.events` | `src/lib/projections/temporal.spec.ts`; projection, normalisation, visibility and downsampling determinism |
+| Levels Through Time renderer | `src/lib/components/LevelsThroughTime.svelte` | `TemporalProjection` props plus presentation styles | Svelte check and browser keyboard/pointer/viewport verification |
+| Static direct-route rewrites | `vercel.json` | The three installed non-root paths only | Direct load/refresh of `/biology`, `/firstlife` and `/galaxy` |
 | App composition | `src/App.svelte` | Core result plus selected provider | Svelte check and rendered browser verification |
 | Release identity | `package.json`, exposed by `src/lib/version.ts` | Engine and schema constants in `src/lib/version.ts`; active provider in the run manifest | Initial-load version strip in `src/App.svelte` |
+| Mode identity display | `src/lib/modes/catalog.ts`, consumed by `ReleaseIdentity.svelte` | Per-mode content identity remains distinct from global Lab/Engine/Schema/Provider identity | Initial render on catalogue, live and scaffold routes |
 | Rendered lineage art/models | Artifact adapters outside `src/lib/core` | `CTR-ARTIFACT` records | Artifact contract tests |
 
 ## SSE compatibility dataset evolution
