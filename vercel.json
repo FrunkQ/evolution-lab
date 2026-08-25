@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/biology", "destination": "/" },
+    { "source": "/exobiology", "destination": "/" },
     { "source": "/firstlife", "destination": "/" },
     { "source": "/galaxy", "destination": "/" }
   ]

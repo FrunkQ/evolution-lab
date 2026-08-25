@@ -148,7 +148,7 @@
         viewBox={`0 0 ${width} ${height}`}
         role="slider"
         tabindex="0"
-        aria-label="Biomass history. Use left and right arrow keys to inspect another day."
+        aria-label={projection.accessibilityLabel}
         aria-valuemin={firstTick}
         aria-valuemax={lastTick}
         aria-valuenow={value}
@@ -158,8 +158,8 @@
         onpointerleave={() => (hoverTick = null)}
         onclick={(event) => onselect(nearestTick(event))}
       >
-        <title>Aggregate biomass levels through the stored simulation history</title>
-        <desc>Five selectable series with recorded event markers and an inspection cursor at day {value}.</desc>
+        <title>{projection.title}</title>
+        <desc>{projection.series.length} selectable series with recorded event markers and an inspection cursor at day {value}.</desc>
         <defs>
           <linearGradient id="total-biomass-area" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#68e0a3" stop-opacity="0.18" />
@@ -227,12 +227,7 @@
   <details>
     <summary>Explain this view</summary>
     <div class="explanation">
-      <p>
-        These lines are aggregate biomass values copied from the deterministic run’s daily snapshots. “Total” sums populations marked active on that day. Event markers are existing recorded simulation events.
-      </p>
-      <p>
-        They are not organism counts, open-ended mutation, cell-complexity levels, calibrated ecology, spectra or a planetary model. Relative view scales every visible series to its own observed peak, so it compares shapes—not absolute amounts. Visibility, hover and keyboard inspection never rerun or alter the simulation.
-      </p>
+      {#each projection.explanation as paragraph}<p>{paragraph}</p>{/each}
     </div>
   </details>
 </section>

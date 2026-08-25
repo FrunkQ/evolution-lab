@@ -11,10 +11,10 @@
     lineage: LineageDefinition;
     population: PopulationState;
     snapshot: WorldSnapshot;
-    layer: VocabularyLayer;
   }
 
-  let { lineage, population, snapshot, layer }: Props = $props();
+  let { lineage, population, snapshot }: Props = $props();
+  let layer = $state<VocabularyLayer>('story');
   const status = $derived(explainPopulation(lineage, population, snapshot));
   const description = $derived(describeLineage(lineage, layer));
 </script>
@@ -28,6 +28,15 @@
       <p class="habitat">{lineage.habitat}</p>
     </div>
   </header>
+
+  <section class="vocabulary" aria-label="Description vocabulary">
+    <span>Describe this lineage as</span>
+    <div>
+      {#each ['story', 'ecology', 'chemistry'] as option}
+        <button class:active={layer === option} onclick={() => (layer = option as VocabularyLayer)}>{option}</button>
+      {/each}
+    </div>
+  </section>
 
   <p class="description">{description}</p>
 
@@ -82,6 +91,11 @@
     text-transform: uppercase;
   }
   .habitat { margin: 0; color: var(--text-muted); font-size: 0.76rem; }
+  .vocabulary { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; margin-bottom: -0.45rem; padding: 0.35rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-soft); border-radius: 7px; }
+  .vocabulary > span { padding-left: 0.35rem; color: var(--text-faint); font-size: 0.56rem; font-weight: 750; letter-spacing: 0.07em; text-transform: uppercase; }
+  .vocabulary > div { display: flex; gap: 0.2rem; }
+  .vocabulary button { padding: 0.32rem 0.45rem; color: var(--text-muted); background: transparent; border: 0; border-radius: 5px; font-size: 0.61rem; text-transform: capitalize; }
+  .vocabulary button.active { color: white; background: color-mix(in srgb, var(--lineage) 26%, #242831); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lineage) 30%, #383d49); }
   .description { margin: 0; color: #d7dbe2; font-size: 0.94rem; line-height: 1.62; }
 
   .organism-mark {
@@ -117,4 +131,5 @@
   .capability strong, .capability small { display: block; }
   .capability strong { font-size: 0.76rem; }
   .capability small { margin-top: 0.12rem; color: var(--text-faint); font-size: 0.65rem; }
+  @media (max-width: 460px) { .vocabulary { align-items: stretch; flex-direction: column; } .vocabulary > div { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; } }
 </style>

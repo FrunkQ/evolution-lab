@@ -32,7 +32,7 @@ describe('installed mode catalogue', () => {
     ] as InstalledMode[];
     expect(validateModeCatalogue(invalid)).toEqual(expect.arrayContaining([
       'Duplicate mode id: biology',
-      'Duplicate mode route: /biology',
+      'Duplicate mode route: /exobiology',
       'Invalid semantic version for biology: latest',
       'Invalid ISO lastUpdated date for biology: 2026-02-31'
     ]));
@@ -60,13 +60,14 @@ describe('installed mode catalogue', () => {
     }
     expect(resolveRoute('/')).toEqual({ kind: 'catalogue' });
     expect(resolveRoute('/social')).toEqual({ kind: 'not-found', pathname: '/social' });
+    expect(resolveRoute('/biology')).toEqual({ kind: 'not-found', pathname: '/biology' });
   });
 
-  it('pins the live biology route to the run manifest scenario identity', () => {
-    const biology = resolveRoute('/biology');
-    expect(biology.kind).toBe('mode');
-    if (biology.kind === 'mode') {
-      expect(biology.mode.composition.scenarioIdentity).toBe(simulate('route-manifest').manifest.scenarioId);
+  it('pins the live exobiology route to the run manifest scenario identity', () => {
+    const exobiology = resolveRoute('/exobiology');
+    expect(exobiology.kind).toBe('mode');
+    if (exobiology.kind === 'mode') {
+      expect(exobiology.mode.composition.scenarioIdentity).toBe(simulate('route-manifest').manifest.scenarioId);
     }
   });
 });

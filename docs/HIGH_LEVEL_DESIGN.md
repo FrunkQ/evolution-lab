@@ -97,6 +97,10 @@ During early development a scripted planet harness supplies timeline frames. Lat
 
 ## Shared user interface
 
+The product is designed for learning, exploration and informed challenge. It aims for conceptual and aggregate-mechanism plausibility that a relevant scientist can assess, while making no claim of proof, calibration or exact prediction. Results therefore lead with ordinary questions and declared limitations rather than an unexplained score.
+
+A parallel help system presents one factual result through cumulative Curious, Biology and Engine lenses. Curious assumes no prior biology or computer-science knowledge; the specialist lenses add mechanisms, representation choices and claim boundaries. Diagrams, versioned UI captures and one-slider presentation-only concept demos should replace walls of text when they explain a relationship more clearly. These demos never run or alter the simulation. The complete grammar and ownership boundary are in `docs/EDUCATION_AND_HELP.md`.
+
 The Evolution Lab and SSE will mount the same component library. The central evolutionary visualization appears as one consistent tree whose nodes retain their position and selection while the user changes lenses:
 
 - ancestry;

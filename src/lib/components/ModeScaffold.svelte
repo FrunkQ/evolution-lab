@@ -27,9 +27,9 @@
       <span class="step">02 · Intended outputs</span>
       <ul>{#each mode.intendedOutputs as output}<li>{output}</li>{/each}</ul>
     </section>
-    <section class="proof">
-      <span class="step">03 · Next honest proof</span>
-      <p>{mode.nextProof}</p>
+    <section class="next-step">
+      <span class="step">03 · Next working step</span>
+      <p>{mode.nextStep}</p>
     </section>
   </div>
 
@@ -53,7 +53,7 @@
   ul { display: grid; gap: 0.55rem; margin: 0.85rem 0 0; padding: 0; list-style: none; }
   li { position: relative; padding-left: 1rem; color: var(--text-muted); font-size: 0.75rem; line-height: 1.4; }
   li::before { position: absolute; left: 0; content: '◇'; color: #72d6a0; }
-  .proof p { margin: 0.85rem 0 0; color: var(--text); font-size: 0.9rem; line-height: 1.5; }
+  .next-step p { margin: 0.85rem 0 0; color: var(--text); font-size: 0.9rem; line-height: 1.5; }
   aside { display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem 1.15rem; color: var(--text-faint); background: rgba(255,179,95,0.06); border-top: 1px solid rgba(255,179,95,0.16); font-size: 0.65rem; }
   aside strong { color: #ffd09f; }
   @media (max-width: 780px) { .contract-grid { grid-template-columns: 1fr; } .contract-grid section { min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-soft); } aside { flex-direction: column; } }

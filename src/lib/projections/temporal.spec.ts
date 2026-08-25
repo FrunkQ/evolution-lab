@@ -23,6 +23,21 @@ describe('temporal history projection', () => {
     }
   });
 
+  it('adds an honest aligned no-shadow comparison when supplied', () => {
+    const run = simulate('paired-projection');
+    const control = simulate('paired-projection', {
+      ...run.config,
+      shadowStartsAt: run.config.duration + 1,
+      shadowEndsAt: run.config.duration + 1
+    });
+    const projection = projectMicrobialBiomassHistory(run, control);
+    const comparison = projection.series.find((series) => series.id === 'comparison/no-long-shadow');
+
+    expect(comparison?.samples).toHaveLength(run.snapshots.length);
+    expect(projection.explanation.join(' ')).toMatch(/not a checkpoint fork/i);
+    expect(projection.markers.map((marker) => marker.id)).toEqual(run.events.map((event) => event.id));
+  });
+
   it('is deterministic for the same seeded run', () => {
     expect(projectMicrobialBiomassHistory(simulate('projection-seed'))).toEqual(
       projectMicrobialBiomassHistory(simulate('projection-seed'))

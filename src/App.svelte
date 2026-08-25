@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import EventHistory from './lib/components/EventHistory.svelte';
+  import ExperimentFeedback from './lib/components/ExperimentFeedback.svelte';
+  import ExperimentScene from './lib/components/ExperimentScene.svelte';
   import ExperimentLibrary from './lib/components/ExperimentLibrary.svelte';
   import EvolutionTimeline from './lib/components/EvolutionTimeline.svelte';
   import EvolutionTree from './lib/components/EvolutionTree.svelte';
+  import HelpPanel from './lib/components/HelpPanel.svelte';
   import LevelsThroughTime from './lib/components/LevelsThroughTime.svelte';
   import LineageInspector from './lib/components/LineageInspector.svelte';
   import ModeCatalogue from './lib/components/ModeCatalogue.svelte';
@@ -11,11 +14,14 @@
   import ReleaseIdentity from './lib/components/ReleaseIdentity.svelte';
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
-  import { DEFAULT_CONFIG, simulate } from './lib/core';
-  import type { TreeLens, VocabularyLayer } from './lib/core';
+  import { createMicrobialShadowEvaluation } from './lib/analysis';
+  import { DEFAULT_CONFIG } from './lib/core';
+  import type { TreeLens } from './lib/core';
   import { EXPERIMENTS } from './lib/experiments';
   import type { EvolutionExperiment } from './lib/experiments';
+  import { createLongShadowHelpTopic } from './lib/help';
   import { INSTALLED_MODES, resolveRoute } from './lib/modes/catalog';
+  import { MICROBIAL_SCENE_VIEW } from './lib/projections/scene';
   import { projectMicrobialBiomassHistory } from './lib/projections/temporal';
   import type { TemporalSeriesStyle } from './lib/projections/presentation';
   import { cloneDefaultRulePack } from './lib/rules';
@@ -28,6 +34,7 @@
   const activeMode = route.kind === 'mode' ? route.mode : null;
   const seriesStyles: TemporalSeriesStyle[] = [
     { seriesId: 'total-active-biomass', color: '#f1f3f5', areaOpacity: 1, symbol: '━━' },
+    { seriesId: 'comparison/no-long-shadow', color: '#8fb7d4', dashPattern: '5 4', symbol: '┈' },
     { seriesId: 'lineage/basal-loop', color: '#b7c7d9', dashPattern: '7 3', symbol: '┄' },
     { seriesId: 'lineage/light-weavers', color: '#68e0a3', symbol: '●' },
     { seriesId: 'lineage/silt-recyclers', color: '#ffc46b', dashPattern: '2 3', symbol: '◆' },
@@ -36,11 +43,11 @@
 
   let labArea = $state<LabArea>('simulation');
   let seed = $state('fish-and-strawberries');
-  let run = $state(simulate('fish-and-strawberries'));
+  let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries'));
+  const run = $derived(evaluationBundle.run);
   let tick = $state(176);
   let selectedId = $state('light-weavers');
   let lens = $state<TreeLens>('ancestry');
-  let vocabulary = $state<VocabularyLayer>('story');
   let workingPack = $state<RulePack>(cloneDefaultRulePack());
   let playing = $state(false);
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -55,7 +62,8 @@
   const activePopulations = $derived(snapshot.populations.filter((population) => population.active));
   const totalBiomass = $derived(activePopulations.reduce((total, population) => total + population.biomass, 0));
   const visibleEvents = $derived(run.events.filter((event) => event.tick <= tick).slice(-5).reverse());
-  const temporalProjection = $derived(projectMicrobialBiomassHistory(run));
+  const temporalProjection = $derived(projectMicrobialBiomassHistory(run, evaluationBundle.comparisonRun));
+  const helpTopic = $derived(createLongShadowHelpTopic(evaluationBundle.evaluation));
   const pageTitle = $derived(
     route.kind === 'catalogue'
       ? 'Evolution Lab · mode catalogue'
@@ -78,7 +86,7 @@
   );
   const headerSummary = $derived(
     route.kind === 'catalogue'
-      ? 'A single deterministic lab with explicit modes: one working biological experiment and two visible next proofs.'
+      ? 'A single deterministic lab with explicit modes: one working exobiology experiment and two visible next steps.'
       : route.kind === 'not-found'
         ? 'Return to the catalogue to choose an installed route.'
         : route.mode.id !== 'biology'
@@ -92,7 +100,7 @@
 
   function rerun() {
     stopPlayback();
-    run = simulate(seed.trim() || 'unnamed-world');
+    evaluationBundle = createMicrobialShadowEvaluation(seed.trim() || 'unnamed-world');
     tick = 176;
     selectedId = 'light-weavers';
   }
@@ -100,7 +108,7 @@
   function runExperiment(experiment: EvolutionExperiment, selectedTick = 176) {
     stopPlayback();
     seed = experiment.masterSeed;
-    run = simulate(experiment.masterSeed);
+    evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed);
     tick = selectedTick;
     selectedId = 'light-weavers';
     labArea = 'simulation';
@@ -205,27 +213,21 @@
   {:else if route.mode.release.lifecycle === 'scaffold'}
     <ModeScaffold mode={route.mode} />
   {:else}
-    <nav class="mode-nav" aria-label="Biology workspace areas">
+    <nav class="mode-nav" aria-label="Exobiology workspace areas">
       <button class:active={labArea === 'simulation'} onclick={() => (labArea = 'simulation')}>Live experiment</button>
       <button class:active={labArea === 'rules'} onclick={() => (labArea = 'rules')}>Rule Workshop</button>
       <button class:active={labArea === 'experiments'} onclick={() => (labArea = 'experiments')}>Experiment Library</button>
     </nav>
 
     {#if labArea === 'simulation'}
+      <ExperimentScene view={MICROBIAL_SCENE_VIEW} />
+
       <section class="control-ribbon">
         <div class="control-group">
           <span>Network lens</span>
           <div class="segmented">
             {#each ['ancestry', 'resources', 'capabilities'] as option}
               <button class:active={lens === option} onclick={() => (lens = option as TreeLens)}>{option}</button>
-            {/each}
-          </div>
-        </div>
-        <div class="control-group vocabulary">
-          <span>Vocabulary</span>
-          <div class="segmented">
-            {#each ['story', 'ecology', 'chemistry'] as option}
-              <button class:active={vocabulary === option} onclick={() => (vocabulary = option as VocabularyLayer)}>{option}</button>
             {/each}
           </div>
         </div>
@@ -238,11 +240,16 @@
 
       <section class="primary-grid">
         <EvolutionTree lineages={run.lineages} {snapshot} {selectedId} {lens} maxTick={DEFAULT_CONFIG.duration} onselect={(lineageId) => (selectedId = lineageId)} />
-        <LineageInspector lineage={selectedLineage} population={selectedPopulation} {snapshot} layer={vocabulary} />
+        <LineageInspector lineage={selectedLineage} population={selectedPopulation} {snapshot} />
       </section>
 
       <EvolutionTimeline value={tick} max={DEFAULT_CONFIG.duration} events={run.events} {playing} onchange={setTick} ontoggleplay={togglePlayback} />
       <LevelsThroughTime projection={temporalProjection} styles={seriesStyles} value={tick} onselect={setTick} />
+
+      <section class="feedback-grid">
+        <ExperimentFeedback evaluation={evaluationBundle.evaluation} />
+        <HelpPanel topic={helpTopic} />
+      </section>
 
       <section class="secondary-grid">
         <ResourceField resources={snapshot.resources} flows={snapshot.flows} signatures={snapshot.signatures} />
@@ -285,5 +292,7 @@
   .not-found h2 { margin: 0.35rem 0; font-size: clamp(1.5rem, 3vw, 2.4rem); }
   .not-found p { color: var(--text-muted); }
   .not-found a { display: inline-block; margin-top: 0.7rem; padding: 0.65rem 0.8rem; color: white; background: var(--accent); border-radius: var(--radius-md); font-size: 0.72rem; font-weight: 800; text-decoration: none; }
+  .feedback-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.75fr); gap: 0.8rem; margin-top: 0.8rem; }
+  @media (max-width: 1040px) { .feedback-grid { grid-template-columns: 1fr; } }
   @media (max-width: 620px) { .product-nav { margin-right: -0.25rem; margin-left: -0.25rem; } }
 </style>

@@ -28,7 +28,7 @@ export interface InstalledMode {
   composition: ModeComposition;
   intendedInputs: readonly string[];
   intendedOutputs: readonly string[];
-  nextProof: string;
+  nextStep: string;
 }
 
 export type ResolvedRoute =
@@ -39,27 +39,27 @@ export type ResolvedRoute =
 const modes: InstalledMode[] = [
   {
     id: 'biology',
-    route: '/biology',
-    title: 'Biology',
+    route: '/exobiology',
+    title: 'Exobiology',
     eyebrow: 'Working experiment',
     summary:
-      'A deterministic microbial flask with four authored lineages, resource flows, environmental forcing and recorded events.',
+      'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.2.0',
+      version: '0.3.0',
       lastUpdated: '2026-08-25',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'Temporal biomass history and route-stable inspection'
+      currentFocus: 'Plain-language resilience feedback and cumulative learning lenses'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,
       providerIdentity: 'scripted-microbial-film@0.1.0',
       domainContentIdentity: 'evolution-lab/base-microbial@0.1.0',
-      presentationIdentity: 'evolution-lab/biology-prototype@0.1.0'
+      presentationIdentity: 'evolution-lab/exobiology-prototype@0.2.0'
     },
     intendedInputs: ['Master seed', 'Scripted daily light and resource inflows'],
-    intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events'],
-    nextProof: 'Reference checkpoint hashes and a controlled paired-run comparison.'
+    intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events', 'Paired long-shadow feedback'],
+    nextStep: 'Promote the flask to a hashed reference and replace paired full reruns with a true checkpoint fork.'
   },
   {
     id: 'firstlife',
@@ -92,7 +92,7 @@ const modes: InstalledMode[] = [
       'Capability-dependency and autonomy evidence',
       'Checkpointed resource and lineage projections'
     ],
-    nextProof:
+    nextStep:
       'Run one deterministic vent-network fixture with parallel solutions and reproducible checkpoints.'
   },
   {
@@ -125,7 +125,7 @@ const modes: InstalledMode[] = [
       'Resource and capability-network histories',
       'Recorded event and legacy projections'
     ],
-    nextProof:
+    nextStep:
       'Demonstrate one non-biological typed split/merge history through the generic projection seam.'
   }
 ];
