@@ -1,14 +1,15 @@
 import type { LineageDefinition, SimulationConfig } from './types';
 
 export const MICROBIAL_SCENARIO_ID = 'lab/microbial-flask-001';
-export const MICROBIAL_SCENARIO_VERSION = '0.2.0';
+export const MICROBIAL_SCENARIO_VERSION = '0.3.0';
 export const MICROBIAL_SCENARIO_IDENTITY = `${MICROBIAL_SCENARIO_ID}@${MICROBIAL_SCENARIO_VERSION}`;
 
 export const DEFAULT_CONFIG: SimulationConfig = {
   duration: 360,
   nutrientPulseAt: 156,
   shadowStartsAt: 232,
-  shadowEndsAt: 268
+  shadowEndsAt: 268,
+  shadowLightFraction: 0.3
 };
 
 export const LINEAGES: LineageDefinition[] = [

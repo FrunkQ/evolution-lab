@@ -90,12 +90,29 @@ interface SimulationStart {
   fork?: SimulationForkManifest;
 }
 
+export function validateSimulationConfig(config: SimulationConfig): void {
+  const integerFields = [
+    ['duration', config.duration],
+    ['nutrientPulseAt', config.nutrientPulseAt],
+    ['shadowStartsAt', config.shadowStartsAt],
+    ['shadowEndsAt', config.shadowEndsAt]
+  ] as const;
+  for (const [label, value] of integerFields) {
+    if (!Number.isInteger(value) || value < 0) throw new Error('Simulation config ' + label + ' must be a non-negative integer.');
+  }
+  if (config.shadowEndsAt < config.shadowStartsAt) throw new Error('Simulation shadow must end on or after it starts.');
+  if (!Number.isFinite(config.shadowLightFraction) || config.shadowLightFraction < 0 || config.shadowLightFraction > 1) {
+    throw new Error('Simulation shadowLightFraction must be between 0 and 1.');
+  }
+}
+
 function runSimulation(
   seed: string,
   config: SimulationConfig,
   environment: EnvironmentProvider,
   start: SimulationStart = {}
 ): SimulationRun {
+  validateSimulationConfig(config);
   const manifest = manifestFor(seed, config, environment);
   const rng = createRng(manifest.scopedSeed);
   const variation = 0.94 + rng() * 0.12;

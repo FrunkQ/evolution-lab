@@ -95,6 +95,11 @@ The complete star, planet and evolutionary history originates from one master se
 
 During early development a scripted planet harness supplies timeline frames. Later, an SSE adapter implements the same contract. A coordinator advances the physical and biological timelines to shared checkpoints so that stellar forcing changes life and biological fluxes can feed back into atmosphere, climate and geology.
 
+The harness should eventually be generated from domain-declared input requirements rather than maintained as a second hand-written API. A pack says which typed, unit-bearing provider fields it needs, their shape, bounds, cadence and validity domain. The Lab can render suitable fixture controls and freeze their output into a hashed dataset; an SSE adapter can satisfy the same declaration from physical history. This keeps interactive testing, imported datasets and coupled production runs on one boundary while allowing different domains to request different physics.
+
+For light-harvesting life, the physical input is ultimately a local spectral irradiance distribution and provider-resolved hazards. Evolved pigments are response curves over that field, not colour names: their absorbed energy, synthesis cost and reflected/transmitted signature create biological consequences and apparent colour. The provider remains authoritative for photon energy, heating, ionisation, pressure and phase. The present scalar light/shadow control is only the first small fixture exercising this direction.
+
+
 ## Shared user interface
 
 The product is designed for learning, exploration and informed challenge. It aims for conceptual and aggregate-mechanism plausibility that a relevant scientist can assess, while making no claim of proof, calibration or exact prediction. Results therefore lead with ordinary questions and declared limitations rather than an unexplained score.
@@ -122,6 +127,9 @@ The most important interaction is “Why?” Each significant population change 
 The Lab remains useful after SSE integration. Its Rule Workshop is the independent place where users author, validate and inspect declarative life packs; SSE selects and runs those packs but does not absorb the configuration machinery. Search, filtering, paging and dependency inspection are designed for hundreds of rules rather than the handful shown in the first prototype.
 
 Experiments are retained as versioned learning records. Each stores its question, seed, provider and rule versions, controlled inputs, checkpoints, observations and lessons. Users can clone a known experiment, alter one input and compare outcomes. Stable reference experiments also become deterministic regression tests.
+
+The first implemented family asks a broader version of one experiment question: how much darkness can the same microbial community absorb? Nine futures share one saved checkpoint and vary only retained usable light and duration. This exposes a response surface rather than inviting a conclusion from one lucky run. The centre case remains the detailed graph; the other cells are compact, hashed evaluations. It is not yet calibration or a multi-seed statistical study.
+
 
 Family trees, organism images and 3D forms are separate deterministic artifacts derived from lineage facts and an inherited morphology recipe. The same artifacts can be displayed by the Lab or SSE without making presentation assets part of the biological state. See `docs/RULEPACK_AND_LAB_ARCHITECTURE.md` for the detailed boundary.
 

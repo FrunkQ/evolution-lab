@@ -14,7 +14,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
-| Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-VIEW`, `DEC-026` | `src/lib/analysis/pairedBiomass.ts`, its tests, then `ExperimentFeedback.svelte` |
+| Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-PROFILE`, `CTR-EVALUATION-FAMILY`, `CTR-EVALUATION-VIEW`, `DEC-026`, `DEC-028` | `src/lib/evaluation/` first, then the domain adapter in `src/lib/analysis/`, projection tests and renderer |
 | Add or change educational help | `INV-LEGIBILITY`, `CTR-HELP-VIEW`, `DEC-022` | `docs/EDUCATION_AND_HELP.md`, `src/lib/help/`, its tests, then `HelpPanel.svelte` |
 | Add or change a product mode/route | `INV-PRESENTATION`, `CTR-MODE`, `DEC-018`, `DEC-020` | `src/lib/modes/catalog.ts`, its tests, then the app shell |
 | Add or change a temporal chart | `CTR-TEMPORAL-VIEW`, `DEC-019` | `src/lib/projections/temporal.ts`, its tests, then `LevelsThroughTime.svelte` |
@@ -22,7 +22,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Add or promote an experiment | `INV-EXPERIMENT`, `CTR-EXPERIMENT` | `src/lib/experiments/`; reference status requires checkpoint hashes |
 | Add a derived state/epoch marker | `PRIM-MARKER`, `CTR-MARKER`, `TIME-*` | authored predicate, ordinary facts, history projection, then vocabulary |
 | Add a lineage image/model | `INV-ARTIFACT`, `CTR-ARTIFACT` | future artifact package; never place renderers in the core |
-| Validate or evolve SSE datasets | `CTR-ENV`, `CTR-RUN`, `DEC-016` | `docs/ENGINE_MAP.md`, `src/lib/contracts/` and fixture tests |
+| Validate or evolve provider inputs/SSE datasets | `CTR-ENV`, `CTR-PROVIDER-REQUIREMENT`, `CTR-RUN`, `DEC-016`, `DEC-030` | `docs/ENGINE_MAP.md`, `src/lib/contracts/` and fixture tests |
 | Integrate with SSE | `BOUND-SSE`, `CTR-ENV`, `CTR-VIEW`, `CTR-SIGNATURE` | compatibility contracts first; adapter package when it exists; SSE remains read-only here |
 | Add alien chemistry | `BOUND-CHEM`, `PRIM-CAP`, `CTR-ENV`, `EXT-CHEM` | chemistry data packs when they exist |
 | Add civilisation/technology | `BOUND-TECH`, `CTR-HANDOFF`, `CTR-SIGNATURE` | future technosphere package |
@@ -148,7 +148,8 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-RULES` | `src/lib/rules` | rulepack types, validation, canonical checksum, compilation and indexes | plain TypeScript/data; no Svelte or SSE | implemented authoring boundary |
 | `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
 | `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types; biomass, positive-productivity, weighted-stress and resource histories; checkpoint-control overlays; reserved run palette; visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented checkpoint-feedback slice |
-| `MOD-ANALYSIS` | `src/lib/analysis` | framework-neutral checkpoint control/shadow validity, survival, recovery, productive-flow, stress, volatility, retained-function and causal-step projections | read-only over aligned `SimulationRun` values; no Svelte/browser state | implemented checkpoint-feedback slice |
+| `MOD-EVALUATION` | `src/lib/evaluation` | domain-neutral typed evaluation profiles, threshold validation, universal/profile gate execution and evaluation-family contracts | plain TypeScript/data; no Svelte, browser or domain imports | implemented first generic slice |
+| `MOD-ANALYSIS` | `src/lib/analysis` | microbial observations, paired metrics/causal steps and the severity-by-duration shadow-family adapter | read-only over aligned `SimulationRun` values; consumes `MOD-EVALUATION`; no Svelte/browser state | implemented checkpoint response-family slice |
 | `MOD-HELP` | `src/lib/help` | cumulative Curious/Biology/Engine teaching content and isolated concept-demo data | consumes analysis facts; cannot import or mutate app/runtime state | implemented first teaching slice |
 | `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, canonical manifest hashes, expected checkpoint hashes and learning metadata | depends on contracts, not app state | microbial reference experiment implemented |
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
@@ -194,6 +195,15 @@ Required long-term habitat facts:
 Compatibility datasets cross this boundary before a runtime adapter exists. A dataset records a schema, pinned provider revision and version, stable system/body/region IDs, master seed and named seed path, physical inputs, numerical provider output and payload hash. The implemented v1 reference fixture carries SSE surface spectral irradiance; it validates the seam but does not replace the live prototype's scalar light input.
 
 The engine returns quantitative transformation fluxes, deposits and physical changes. Tags such as `hazy`, `oxygenated` or `reef-world` are derived outputs, never the only outputs.
+
+### `CTR-PROVIDER-REQUIREMENT` Domain-declared physical inputs and fixture harness
+
+A domain pack will declare the provider inputs it requires as stable typed IDs with units, scalar/distribution shape, bounds, cadence/resolution, validity domain and provenance requirements. The same declaration must be able to drive a Lab editor, validate imported fixture data and describe an SSE adapter capability. UI controls are authoring conveniences only: a run consumes an immutable, versioned, content-hashed provider dataset or frame sequence recorded in its manifest. A provider may reject impossible combinations; it must not silently repair authoritative inputs.
+
+Physical backstops remain provider-owned. For exobiology, the long-term electromagnetic input is a unit-aware spectral irradiance distribution plus provider-resolved effects, not a biological colour label. Named non-ionising, ionising or heating-relevant bands are typed projections over that field; hazard depends on energy, intensity, exposure and coupling. Evolution-owned capabilities may later carry absorption/response curves and costs, derive accessible biological energy from the local field, and return absorption/reflection/transmission/emission contributions. They cannot override photon energy, pressure, density, phase or provider conservation constraints. Apparent colour is a presentation/observer projection of the returned spectrum under declared illumination.
+
+The existing scalar-light configuration and SSE spectral v1 fixture are small precursors, not the schema-generated harness. Other domains may declare entirely different raw inputs through the same contract, such as mass distributions and angular momentum for galactic formation. Evolution Lab does not import physical solvers; System Lab/SSE adapters satisfy the declared contract.
+
 
 ### `CTR-HISTORY` History output
 
@@ -266,6 +276,19 @@ Presentation styles are separate data; the renderer does not read engine state. 
 The implemented microbial evaluator resumes control and long-shadow futures from the same verified checkpoint immediately before the light change. It compares same-time snapshots and reports five ordinary questions: survival, recovery, accumulated loss, instability/stress and retained represented functions. Supporting metrics include minimum biomass retention, recovery time, integrated biomass loss, end difference, post-return volatility, peak biomass-weighted stress, minimum positive-productivity retention and retained authored capabilities. A generated causal trail links the fork, first stored resource difference, first population-productivity response, deepest bottleneck and outcome back to timeline days.
 
 Recovery currently means at least 90% of same-time control biomass for 14 consecutive stored days. Hard gates currently verify checkpoint integrity, shared-prefix identity, declared branch isolation, resume equivalence, finite values, non-negative stored stocks, exact fork repeatability and absence of one declared unsupported-runaway pattern. Any failed implemented gate makes the result invalid and prominent. Complete unit-aware conservation and accounting for material introduced by prototype floors/caps remain unavailable gates displayed beside the result; scientific calibration is not claimed.
+
+### `CTR-EVALUATION-PROFILE` Versioned evaluation knowledge
+
+A compiled evaluation profile is domain-neutral typed configuration with stable identity/version/hash. It declares threshold IDs with units and explanations, metric/question/limitation IDs, and ordered gate definitions. Gates distinguish universal integrity requirements from profile-specific scientific or mechanical requirements. Runtime/domain adapters emit observations against declared gate IDs; an undeclared observation is rejected and a missing observation for an implemented gate fails the result. A deliberately unavailable gate remains visible as `not-checked` and does not silently become a pass.
+
+The implemented microbial profile owns the current survival, recovery, stored-difference and unsupported-growth thresholds. `src/lib/evaluation` owns compilation and gate execution; `src/lib/analysis` owns only microbial observations and metric interpretation.
+
+### `CTR-EVALUATION-FAMILY` Checkpoint-paired response family
+
+An evaluation family records stable identity/version/hash, a pinned compiled profile, typed parameter axes and content-hashed cases. Cases in the implemented microbial family fork from one parent checkpoint and vary only retained usable-light fraction and shadow duration. The family contains three retained-light levels (50%, 30%, 10%) by three durations (14, 37, 90 days); the existing 30% for 37 days remains the centre reference case.
+
+Each case reports validity and the currently real resilience measures. The framework-neutral response-map projection translates those records into ordinary language; its Svelte renderer cannot run, tune or mutate the experiment. This is a deterministic boundary probe, not calibration, optimisation, a statistical ensemble or proof of ecological realism.
+
 ### `CTR-HELP-VIEW` Cumulative educational explanation
 
 One help topic has stable identity/version and three cumulative lenses over the same fact and limitation IDs:
@@ -397,6 +420,8 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-005` Experiment Feedback answers survival/recovery/loss/instability/retained-function questions, exposes a timeline-linked causal trail, and makes failed or unavailable hard gates visible before detailed thresholds and limitations. It consumes only `CTR-EVALUATION-VIEW`.
 
+`UI-005A` Evaluation Response Map consumes a framework-neutral projection of `CTR-EVALUATION-FAMILY`. It labels both axes and every outcome in text, marks the centre reference case, exposes the pinned profile/checkpoint identity, and never changes a run or random draw.
+
 `UI-006` Help Panel mirrors the established three-lens interaction with cumulative Curious/Biology/Engine explanations, a schematic comparison diagram and an isolated light concept slider. The Story/Ecology/Chemistry vocabulary selector remains local to the lineage description it changes.
 
 `UI-007` Material & Energy and Causal History are time-local inspection surfaces. They remain directly beneath the shared timeline so moving the time cursor immediately updates the nearby physical state and recorded causes before the user reaches longer-range charts and interpretation.
@@ -506,7 +531,7 @@ Initial design target per world:
 | `DEC-013` | Preserve experiments as versioned learning and regression content. | accepted |
 | `DEC-014` | Use one authorable derived-marker mechanism for any named state or epoch; soil and other familiar milestones have no engine-level special case. | accepted |
 | `DEC-015` | Publish the project as Evolution Lab under the Apache License 2.0. | accepted |
-| `DEC-016` | Use versioned, seeded numerical datasets generated from pinned SSE revisions as compatibility fixtures; do not duplicate SSE spectral, atmosphere or pigment implementation in Evolution Lab. | accepted |
+| `DEC-016` | Use versioned, seeded numerical datasets generated from pinned SSE revisions as compatibility fixtures; do not duplicate SSE stellar, atmosphere or other authoritative physical solvers in Evolution Lab. | accepted; biological response ownership clarified by `DEC-030` |
 | `DEC-017` | Expose Lab, engine, run-schema and active environment-provider versions on initial load from their authoritative sources. | accepted |
 | `DEC-018` | Use one route catalogue and deployment: `/`, `/exobiology`, `/firstlife`, `/galaxy`; scaffold routes show no fabricated simulation and no mode uses a subdomain or code fork. | accepted; route renamed by `DEC-024` before external adoption |
 | `DEC-019` | Project stored history into a framework-neutral temporal-series contract; render it through a presentation-only native-SVG component connected to the existing inspection cursor. | accepted |
@@ -519,6 +544,9 @@ Initial design target per world:
 | `DEC-025` | Target plausibly close, conceptually defensible aggregate mechanisms and challengeable learning, not scientific proof or calibrated prediction. | accepted |
 | `DEC-026` | At a rounded stored-day boundary, capture a content-hashed exact checkpoint; validate it before resume; and evaluate declared control/shadow futures whose identical prefix and uninterrupted-run equivalence are tested. | accepted |
 | `DEC-027` | Reserve distinct presentation colours for whole-run observed/shadow and control series; lineage series cannot reuse them and every line retains a non-colour cue. | accepted |
+| `DEC-028` | Compile versioned, domain-neutral evaluation profiles that declare thresholds, metrics, questions, limitations and universal/profile gates; domain adapters emit observations and missing implemented observations invalidate a result. | accepted |
+| `DEC-029` | Treat severity-by-duration futures from one parent checkpoint as an evaluation family of hashed cases; the 30%-light, 37-day case remains the reference graph and the map is a read-only projection. | accepted |
+| `DEC-030` | Let domain packs declare typed, unit-aware provider inputs from which the Lab can generate validated hashed fixtures and SSE can implement an adapter. Providers own physical backstops; Evolution-owned capabilities consume those fields and return flux/signature responses. | accepted target; scalar-light precursor implemented |
 
 ## 16. Open questions
 
@@ -531,6 +559,7 @@ Initial design target per world:
 | `OPEN-005` | Formal conflict/cooperation metrics for node wrapping? | milestone 5 |
 | `OPEN-006` | Persisted run format and schema migration policy? | before milestone 6 |
 | `OPEN-007` | Package distribution strategy for SSE: workspace package, source import or published package? | milestone 6 |
+| `OPEN-008` | Exact provider-input schema composition, capability negotiation and spectral sampling/return-flux contract? | before live System Lab/SSE adapter |
 | `OPEN-009` | Cross-browser determinism level: quantised floating point or fixed-point for conservation-critical ledgers? | milestone 2 |
 | `OPEN-010` | Exact rulepack extension, replacement and conflict semantics? | before third-party modpacks |
 | `OPEN-011` | Signing, trust, licensing and asset limits for shared modpacks? | before public sharing |

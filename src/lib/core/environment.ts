@@ -24,7 +24,7 @@ function environmentEvent(
  */
 export const scriptedMicrocosmEnvironment: EnvironmentProvider = {
   id: 'scripted-microbial-film',
-  version: '0.1.0',
+  version: '0.2.0',
   frameAt(tick: number, config: SimulationConfig): EnvironmentFrame {
     const events: SimulationEvent[] = [];
     const seasonalLight = 70 + 11 * Math.sin((tick / 48) * Math.PI * 2);
@@ -77,7 +77,7 @@ export const scriptedMicrocosmEnvironment: EnvironmentProvider = {
 
     return {
       tick,
-      light: Math.max(4, Math.min(90, inShadow ? seasonalLight * 0.3 : seasonalLight)),
+      light: Math.max(4, Math.min(90, inShadow ? seasonalLight * config.shadowLightFraction : seasonalLight)),
       inflows,
       events
     };

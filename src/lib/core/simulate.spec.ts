@@ -87,6 +87,11 @@ describe('microcosm simulation', () => {
     expect(shadow.snapshots[checkpoint.tick + 1]).not.toEqual(control.snapshots[checkpoint.tick + 1]);
   });
 
+  it('rejects impossible retained-light inputs before simulation', () => {
+    expect(() => simulate('bad-light', { ...DEFAULT_CONFIG, shadowLightFraction: -0.1 })).toThrow(/between 0 and 1/);
+    expect(() => simulate('bad-light', { ...DEFAULT_CONFIG, shadowLightFraction: 1.1 })).toThrow(/between 0 and 1/);
+  });
+
   it('rejects a tampered checkpoint before resume', () => {
     const checkpoint = createSimulationCheckpoint(simulate('tamper'), 120);
     checkpoint.snapshots[0].resources.carbon += 1;

@@ -77,6 +77,7 @@ export interface SimulationConfig {
   nutrientPulseAt: number;
   shadowStartsAt: number;
   shadowEndsAt: number;
+  shadowLightFraction: number;
 }
 
 export interface EnvironmentFrame {

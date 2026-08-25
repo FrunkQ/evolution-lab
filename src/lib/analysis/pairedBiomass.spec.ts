@@ -12,6 +12,8 @@ describe('checkpoint shadow evaluation', () => {
     const second = createMicrobialShadowEvaluation('checkpoint-analysis');
     expect(first).toEqual(second);
     expect(first.evaluation.comparison.kind).toBe('checkpoint-control-shadow');
+    expect(first.evaluation.profile.id).toBe('biology/microbial-long-shadow');
+    expect(first.evaluation.profile.hash).toMatch(/^evaluation-profile\/v1-/);
     expect(first.run.fork?.parentCheckpointHash).toBe(first.checkpoint.hash);
     expect(first.comparisonRun.fork?.parentCheckpointHash).toBe(first.checkpoint.hash);
     expect(first.run.snapshots.slice(0, first.checkpoint.tick + 1)).toEqual(

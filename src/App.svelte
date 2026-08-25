@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import EventHistory from './lib/components/EventHistory.svelte';
+  import EvaluationResponseMap from './lib/components/EvaluationResponseMap.svelte';
   import ExperimentFeedback from './lib/components/ExperimentFeedback.svelte';
   import ExperimentScene from './lib/components/ExperimentScene.svelte';
   import ExperimentLibrary from './lib/components/ExperimentLibrary.svelte';
@@ -14,7 +15,7 @@
   import ReleaseIdentity from './lib/components/ReleaseIdentity.svelte';
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
-  import { createMicrobialShadowEvaluation } from './lib/analysis';
+  import { createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily } from './lib/analysis';
   import { DEFAULT_CONFIG } from './lib/core';
   import type { TreeLens } from './lib/core';
   import { EXPERIMENTS } from './lib/experiments';
@@ -24,6 +25,7 @@
   import { MICROBIAL_SCENE_VIEW } from './lib/projections/scene';
   import {
     projectMicrobialHistories,
+    projectMicrobialShadowResponse,
     RESERVED_RUN_COLORS,
     validateTemporalSeriesStyles,
     type TemporalSeriesStyle
@@ -60,6 +62,7 @@
   let labArea = $state<LabArea>('simulation');
   let seed = $state('fish-and-strawberries');
   let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries'));
+  let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries'));
   const run = $derived(evaluationBundle.run);
   let tick = $state(176);
   let selectedId = $state('light-weavers');
@@ -79,6 +82,7 @@
   const totalBiomass = $derived(activePopulations.reduce((total, population) => total + population.biomass, 0));
   const visibleEvents = $derived(run.events.filter((event) => event.tick <= tick).slice(-5).reverse());
   const temporalProjections = $derived(projectMicrobialHistories(run, evaluationBundle.comparisonRun));
+  const responseView = $derived(projectMicrobialShadowResponse(responseFamily));
   const helpTopic = $derived(createLongShadowHelpTopic(evaluationBundle.evaluation));
   const pageTitle = $derived(
     route.kind === 'catalogue'
@@ -116,7 +120,9 @@
 
   function rerun() {
     stopPlayback();
-    evaluationBundle = createMicrobialShadowEvaluation(seed.trim() || 'unnamed-world');
+    const nextSeed = seed.trim() || 'unnamed-world';
+    evaluationBundle = createMicrobialShadowEvaluation(nextSeed);
+    responseFamily = createMicrobialShadowResponseFamily(nextSeed);
     tick = 176;
     selectedId = 'light-weavers';
   }
@@ -125,6 +131,7 @@
     stopPlayback();
     seed = experiment.masterSeed;
     evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed);
+    responseFamily = createMicrobialShadowResponseFamily(experiment.masterSeed);
     tick = selectedTick;
     selectedId = 'light-weavers';
     labArea = 'simulation';
@@ -267,6 +274,8 @@
       </section>
 
       <HistoryExplorer projections={temporalProjections} styles={seriesStyles} value={tick} onselect={setTick} />
+
+      <EvaluationResponseMap view={responseView} />
 
       <section class="feedback-grid">
         <ExperimentFeedback evaluation={evaluationBundle.evaluation} onselect={setTick} />

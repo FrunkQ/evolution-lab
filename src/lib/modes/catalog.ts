@@ -45,17 +45,17 @@ const modes: InstalledMode[] = [
     summary:
       'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.4.0',
+      version: '0.5.0',
       lastUpdated: '2026-08-25',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'Checkpoint control, resilience measures and traceable cause-and-effect'
+      currentFocus: 'Nine-case shadow response map over one verified checkpoint'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,
-      providerIdentity: 'scripted-microbial-film@0.1.0',
+      providerIdentity: 'scripted-microbial-film@0.2.0',
       domainContentIdentity: 'evolution-lab/base-microbial@0.1.0',
-      presentationIdentity: 'evolution-lab/exobiology-prototype@0.3.0'
+      presentationIdentity: 'evolution-lab/exobiology-prototype@0.4.0'
     },
     intendedInputs: ['Master seed', 'Scripted daily light and resource inflows'],
     intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events', 'Paired long-shadow feedback'],

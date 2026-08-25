@@ -161,6 +161,11 @@ Milestones 1–5 use a deterministic test provider implementing the same frame c
 
 The provider is replaceable test data, not an alternate environment API.
 
+The Lab harness should be generated from versioned domain input declarations. Each declaration identifies required field IDs, units, scalar/curve/distribution shape, bounds, cadence, accuracy/validity domain and provenance. A fixture editor emits immutable content-hashed provider frames using that schema; the eventual SSE adapter advertises and satisfies the same capability contract. Runtime code sees frames, never UI state.
+
+Electromagnetic forcing should cross as a unit-aware spectrum with typed band projections and provider-resolved exposure consequences, not three unlabelled colour curves. Evolution may consume it through biological absorption/response curves and return absorption, reflection, transmission or emission contributions. SSE remains responsible for radiative transfer, heating, ionisation and resulting physical state.
+
+
 ## 8. Planned changes in SSE once access and milestone readiness exist
 
 1. Define versioned, framework-neutral timeline frame and biological-flux types.
