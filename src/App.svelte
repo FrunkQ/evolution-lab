@@ -244,6 +244,12 @@
       </section>
 
       <EvolutionTimeline value={tick} max={DEFAULT_CONFIG.duration} events={run.events} {playing} onchange={setTick} ontoggleplay={togglePlayback} />
+
+      <section class="secondary-grid">
+        <ResourceField resources={snapshot.resources} flows={snapshot.flows} signatures={snapshot.signatures} />
+        <EventHistory events={visibleEvents} onselect={setTick} />
+      </section>
+
       <LevelsThroughTime projection={temporalProjection} styles={seriesStyles} value={tick} onselect={setTick} />
 
       <section class="feedback-grid">
@@ -251,10 +257,6 @@
         <HelpPanel topic={helpTopic} />
       </section>
 
-      <section class="secondary-grid">
-        <ResourceField resources={snapshot.resources} flows={snapshot.flows} signatures={snapshot.signatures} />
-        <EventHistory events={visibleEvents} onselect={setTick} />
-      </section>
     {:else if labArea === 'rules'}
       <RuleWorkshop pack={workingPack} onchange={(pack) => (workingPack = pack)} onexport={exportRulePack} />
     {:else}

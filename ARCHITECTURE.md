@@ -393,6 +393,8 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-006` Help Panel mirrors the established three-lens interaction with cumulative Curious/Biology/Engine explanations, a schematic comparison diagram and an isolated light concept slider. The Story/Ecology/Chemistry vocabulary selector remains local to the lineage description it changes.
 
+`UI-007` Material & Energy and Causal History are time-local inspection surfaces. They remain directly beneath the shared timeline so moving the time cursor immediately updates the nearby physical state and recorded causes before the user reaches longer-range charts and interpretation.
+
 ## 12. Milestones
 
 ### `MILESTONE-0` Skeleton — current
