@@ -198,11 +198,11 @@ The engine returns quantitative transformation fluxes, deposits and physical cha
 
 ### `CTR-PROVIDER-REQUIREMENT` Domain-declared physical inputs and fixture harness
 
-A domain pack will declare the provider inputs it requires as stable typed IDs with units, scalar/distribution shape, bounds, cadence/resolution, validity domain and provenance requirements. The same declaration must be able to drive a Lab editor, validate imported fixture data and describe an SSE adapter capability. UI controls are authoring conveniences only: a run consumes an immutable, versioned, content-hashed provider dataset or frame sequence recorded in its manifest. A provider may reject impossible combinations; it must not silently repair authoritative inputs.
+A domain pack declares the provider inputs it requires as stable typed IDs with units, value shape, bounds, authority, current-use status and provenance requirements. The implemented v0.1 profile/fixture compiler supports scalars and curves; distributions and event series remain planned extensions. The same declaration drives the reusable Lab editor, validates imported fixture data and describes the capability an SSE/System Lab adapter must advertise. UI controls are authoring conveniences only: injection compiles an immutable, versioned, content-hashed provider dataset and pins its profile identity and hash into the run manifest. A provider may reject impossible combinations; it must not silently repair authoritative inputs.
 
 Physical backstops remain provider-owned. For exobiology, the long-term electromagnetic input is a unit-aware spectral irradiance distribution plus provider-resolved effects, not a biological colour label. Named non-ionising, ionising or heating-relevant bands are typed projections over that field; hazard depends on energy, intensity, exposure and coupling. Evolution-owned capabilities may later carry absorption/response curves and costs, derive accessible biological energy from the local field, and return absorption/reflection/transmission/emission contributions. They cannot override photon energy, pressure, density, phase or provider conservation constraints. Apparent colour is a presentation/observer projection of the returned spectrum under declared illumination.
 
-The existing scalar-light configuration and SSE spectral v1 fixture are small precursors, not the schema-generated harness. Other domains may declare entirely different raw inputs through the same contract, such as mass distributions and angular momentum for galactic formation. Evolution Lab does not import physical solvers; System Lab/SSE adapters satisfy the declared contract.
+The implemented Exobiology profile combines pinned SSE spectral curves with authored Lab scalars for radiation, energy gradients, habitat state, liquid-medium availability, solvent activity, transport and the current scripted adapter. It does not assume water: a scenario declares its solvent/medium identity and any solvent-specific acidity scale. Only requirements marked `drives-prototype` are mapped into today's microbial equations; recorded-only values remain hashed facts and explicit non-capabilities. JSON import/export uses the same fixture schema, and re-import reproduces the hash. Other domains may declare entirely different inputs through the same contract, such as mass distributions and angular momentum for galactic formation. Evolution Lab does not import physical solvers; System Lab/SSE adapters satisfy the declared profile.
 
 
 ### `CTR-HISTORY` History output
@@ -426,6 +426,8 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-007` Material & Energy and Causal History are time-local inspection surfaces. They remain directly beneath the shared timeline so moving the time cursor immediately updates the nearby physical state and recorded causes before the user reaches longer-range charts and interpretation.
 
+`UI-008` Physical Inputs is a reusable profile-driven data injector. It renders scalar and curve controls, their units/use/provenance, pinned spectral previews, validation issues, JSON load/download and an explicit push action. It consumes `CTR-PROVIDER-REQUIREMENT`; its future live-provider selector is an adapter seam, not an SSE dependency or a simulated connection.
+
 ## 12. Milestones
 
 ### `MILESTONE-0` Skeleton — current
@@ -546,7 +548,8 @@ Initial design target per world:
 | `DEC-027` | Reserve distinct presentation colours for whole-run observed/shadow and control series; lineage series cannot reuse them and every line retains a non-colour cue. | accepted |
 | `DEC-028` | Compile versioned, domain-neutral evaluation profiles that declare thresholds, metrics, questions, limitations and universal/profile gates; domain adapters emit observations and missing implemented observations invalidate a result. | accepted |
 | `DEC-029` | Treat severity-by-duration futures from one parent checkpoint as an evaluation family of hashed cases; the 30%-light, 37-day case remains the reference graph and the map is a read-only projection. | accepted |
-| `DEC-030` | Let domain packs declare typed, unit-aware provider inputs from which the Lab can generate validated hashed fixtures and SSE can implement an adapter. Providers own physical backstops; Evolution-owned capabilities consume those fields and return flux/signature responses. | accepted target; scalar-light precursor implemented |
+| `DEC-030` | Let domain packs declare typed, unit-aware provider inputs from which the Lab can generate validated hashed fixtures and SSE can implement an adapter. Providers own physical backstops; Evolution-owned capabilities consume those fields and return flux/signature responses. | accepted; first scalar/curve profile and fixture compiler implemented |
+| `DEC-031` | Generate one reusable Physical Inputs UI from the provider profile; load/download JSON fixtures and inject only explicitly mapped values while pinning the immutable fixture hash into the run. Solvent/medium identity is declared rather than assuming water. | accepted; Exobiology slice implemented |
 
 ## 16. Open questions
 

@@ -24,10 +24,13 @@ function environmentEvent(
  */
 export const scriptedMicrocosmEnvironment: EnvironmentProvider = {
   id: 'scripted-microbial-film',
-  version: '0.2.0',
+  version: '0.3.0',
   frameAt(tick: number, config: SimulationConfig): EnvironmentFrame {
     const events: SimulationEvent[] = [];
-    const seasonalLight = 70 + 11 * Math.sin((tick / 48) * Math.PI * 2);
+    const meanLight = config.meanUsableLight ?? 70;
+    const amplitude = config.lightCycleAmplitude ?? 11;
+    const cycleDays = config.lightCycleDays ?? 48;
+    const seasonalLight = meanLight + amplitude * Math.sin((tick / cycleDays) * Math.PI * 2);
     const inShadow = tick >= config.shadowStartsAt && tick <= config.shadowEndsAt;
     const inflows: EnvironmentFrame['inflows'] = {};
 

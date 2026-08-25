@@ -81,7 +81,8 @@ function manifestFor(
     schemaVersion: RUN_SCHEMA_VERSION,
     scenarioId: MICROBIAL_SCENARIO_IDENTITY,
     environmentProvider: `${environment.id}@${environment.version}`,
-    configHash: stableChecksum('simulation-config-v1', config)
+    configHash: stableChecksum('simulation-config-v1', config),
+    providerInput: config.providerInput ? { ...config.providerInput } : undefined
   };
 }
 
@@ -103,6 +104,21 @@ export function validateSimulationConfig(config: SimulationConfig): void {
   if (config.shadowEndsAt < config.shadowStartsAt) throw new Error('Simulation shadow must end on or after it starts.');
   if (!Number.isFinite(config.shadowLightFraction) || config.shadowLightFraction < 0 || config.shadowLightFraction > 1) {
     throw new Error('Simulation shadowLightFraction must be between 0 and 1.');
+  }
+  const optionalNonNegative = [
+    ['meanUsableLight', config.meanUsableLight],
+    ['lightCycleAmplitude', config.lightCycleAmplitude]
+  ] as const;
+  for (const [label, value] of optionalNonNegative) {
+    if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+      throw new Error('Simulation config ' + label + ' must be finite and non-negative.');
+    }
+  }
+  if (config.lightCycleDays !== undefined && (!Number.isFinite(config.lightCycleDays) || config.lightCycleDays <= 0)) {
+    throw new Error('Simulation config lightCycleDays must be finite and positive.');
+  }
+  if (config.providerInput && (!config.providerInput.profileId.trim() || !config.providerInput.profileVersion.trim() || !config.providerInput.fixtureHash.trim())) {
+    throw new Error('Simulation provider input identity must be complete.');
   }
 }
 

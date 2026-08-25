@@ -87,6 +87,25 @@ describe('microcosm simulation', () => {
     expect(shadow.snapshots[checkpoint.tick + 1]).not.toEqual(control.snapshots[checkpoint.tick + 1]);
   });
 
+  it('pins injected provider identity and uses only declared prototype light controls', () => {
+    const config = {
+      ...DEFAULT_CONFIG,
+      meanUsableLight: 30,
+      lightCycleAmplitude: 0,
+      lightCycleDays: 20,
+      providerInput: {
+        profileId: 'exobiology/provider-requirements',
+        profileVersion: '0.1.0',
+        fixtureHash: 'provider-fixture/v1-test'
+      }
+    };
+    const first = simulate('injected-input', config);
+    const second = simulate('injected-input', config);
+    expect(first).toEqual(second);
+    expect(first.snapshots[0].resources.light).toBe(30);
+    expect(first.manifest.providerInput).toEqual(config.providerInput);
+    expect(first.manifest.configHash).not.toBe(simulate('injected-input').manifest.configHash);
+  });
   it('rejects impossible retained-light inputs before simulation', () => {
     expect(() => simulate('bad-light', { ...DEFAULT_CONFIG, shadowLightFraction: -0.1 })).toThrow(/between 0 and 1/);
     expect(() => simulate('bad-light', { ...DEFAULT_CONFIG, shadowLightFraction: 1.1 })).toThrow(/between 0 and 1/);

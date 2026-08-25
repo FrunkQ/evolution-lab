@@ -4,7 +4,7 @@ A browser-first laboratory for deterministic, explainable histories of evolving 
 
 > Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-That is the target architecture. The current `v0.6` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork and a nine-case response family around one scripted light change. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
+That is the target architecture. The current `v0.7` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork and a nine-case response family around one scripted light change. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
 
 The Lab is for learning, exploration and challenge. Its aim is to be plausibly close to the relevant scientific thinking at the level it actually models, while exposing assumptions and omissions clearly enough to invite useful criticism. It is not evidence, prediction, calibration or scientific proof.
 
@@ -18,11 +18,14 @@ The root route `/` is a recently-updated catalogue. It and direct route loads re
 
 There is one application and one deployment. Modes are paths, not subdomains or code forks. Each catalogue card shows its own content version, intentional last-edit date and lifecycle separately from the global Lab/Engine/Schema/Provider release strip.
 
-The Exobiology workspace has three permanent areas:
+The Exobiology workspace has four permanent areas:
 
 - **Live experiment** — explore the current seeded microbial history.
+- **Physical Inputs** — create, validate, import/export and inject a content-hashed provider dataset from a reusable typed profile.
 - **Rule Workshop** — author and validate scalable declarative packs independently of the runtime and SSE.
 - **Experiment Library** — retain reproducible questions, checkpoints and lessons instead of discarding prototypes.
+
+The Physical Inputs harness is generated from the Exobiology provider-requirement profile rather than a hand-built form. It accepts scalar and spectral-curve data with units, bounds and provenance; can load or download JSON fixtures; and pins an injected fixture hash into the run manifest. Only controls explicitly labelled **Drives this experiment** affect the current aggregate equations. Temperature, pressure, gravity, radiation, chemical energy, liquid-medium availability, solvent activity and other recorded facts remain visible but do not falsely claim live mechanisms. The same harness can render another mode's profile, while a future SSE/System Lab adapter must satisfy this contract before it can stream or resolve richer data.
 
 Its reusable **Levels Through Time** renderer now has four locally selected views over stored daily facts: living mass, positive production of new living mass, biomass-weighted community strain and resource levels. Control and long-shadow futures resume from one verified checkpoint immediately before the light change. Recorded events and the fork are markers; the chart cursor shares the selected timeline day. Observed/shadow and control runs have reserved white and blue identities that lineage colours cannot borrow, with dash and symbol cues retained. View selection, visibility, hover and valid relative scaling are presentation-only and cannot alter either future.
 

@@ -17,7 +17,9 @@ This is a sparse routing index for agents. It points to the one authoritative co
 | Simulation loop, run manifest, checkpoint, resume and fork | `src/lib/core/simulate.ts` | Scenario/environment inputs plus `SimulationCheckpoint` and `SimulationForkManifest` | `src/lib/core/simulate.spec.ts`; uninterrupted/resume equivalence, content validation, prefix identity and divergent futures |
 | Canonical runtime content hashing | `src/lib/core/canonical.ts` | Canonically ordered serializable content plus a versioned namespace | Core checkpoint and experiment tests; rulepack authority re-exports this implementation |
 | Seed derivation and random streams | `src/lib/core/rng.ts` | Run master seed and named paths | Core simulation tests |
-| Scripted external forcing | `src/lib/core/environment.ts` | Validated `SimulationConfig` in `src/lib/core/types.ts`; current retained-light fraction is a fixture precursor, not the long-term provider schema | Core simulation tests; no UI-owned forcing |
+| Scripted external forcing | `src/lib/core/environment.ts` | Validated `SimulationConfig` in `src/lib/core/types.ts`; injected profile values reach it only through `exobiologyFixtureToSimulationConfig` | Core simulation tests; manifest pins the compiled input identity; no UI-owned forcing |
+| Generic provider requirement and fixture compiler | `src/lib/contracts/providerRequirements.ts` | Stable profile/fixture schemas, scalar/curve values, units, bounds, authority/use/provenance and content hash | `src/lib/contracts/providerRequirements.spec.ts`; import/export round-trip hash, immutability and invalid input rejection |
+| Exobiology physical-input profile and prototype adapter | `src/lib/contracts/exobiologyInputs.ts` | Profile-authored physical/scenario requirements plus pinned SSE spectral presets | Same contract test; only `drives-prototype` requirements map into `SimulationConfig`; no water or other solvent engine assumption |
 | SSE compatibility dataset schema | `src/lib/contracts/ssePlanetDataset.ts` | `src/lib/contracts/fixtures/sse-beta-spectral-v1.json` | `src/lib/contracts/ssePlanetDataset.spec.ts` |
 | SSE stellar, atmosphere and spectrum physics | Star System Explorer `beta` `/physics` implementation | A pinned SSE revision and rulepack | Evolution Lab consumes generated numerical datasets only; it does not duplicate or import SSE source |
 | Lineage vocabulary and authored prototype colour | `src/lib/core/scenario.ts` | Scenario declaration | Core simulation tests; authored colour is not a physical spectral result |
@@ -39,6 +41,7 @@ This is a sparse routing index for agents. It points to the one authoritative co
 | History quantity selector | `src/lib/components/HistoryExplorer.svelte` | Read-only list of compatible `TemporalProjection` values | Svelte check and browser tab/viewport verification; selecting a view never changes run state |
 | Plain-language feedback renderer | `src/lib/components/ExperimentFeedback.svelte` | `PairedBiomassEvaluation` plus timeline-selection callback | Svelte check; five ordinary questions, linked causal steps, hard-gate prominence and narrow-viewport verification |
 | Evaluation response-map renderer | `src/lib/components/EvaluationResponseMap.svelte` | `EvaluationResponseMapView` only | Svelte check and browser viewport verification; status has text/symbol cues and the centre reference is labelled |
+| Physical input harness renderer | `src/lib/components/ProviderInputHarness.svelte` | One `ProviderRequirementProfile`, editable `ProviderFixtureDraft`, validation/compiled hash and callbacks | Svelte check and browser verification; JSON file tools and push are generic; SSE connection remains an unimplemented adapter seam |
 | Educational help renderer and concept demo | `src/lib/components/HelpPanel.svelte` | `HelpTopic` prop and local audience/slider presentation state | Svelte check; tab/slider keyboard use, shared-fact wording and no simulation changes |
 | Local lineage vocabulary | `src/lib/components/LineageInspector.svelte` | Local Story/Ecology/Chemistry presentation state over one selected lineage | Svelte check; control remains inside the description panel |
 | Static direct-route rewrites | `vercel.json` | The three installed non-root paths only | Direct load/refresh of `/exobiology`, `/firstlife` and `/galaxy`; no `/biology` alias |
@@ -65,7 +68,7 @@ These versions describe the external input seam, not engine milestones. Add a ne
 - Promote `draft` to `reference` only after reproducible inputs, the canonical manifest hash and every expected checkpoint hash reproduce.
 - Keep only generated numerical output in this Apache-licensed repository until a deliberately shared package and licensing boundary exists.
 - Do not import SSE stores, UI types or authoring state. Do not reimplement Planck spectra or atmosphere filtering here. Future Evolution-owned pigment traits consume provider spectra and return response/signature data through `CTR-PROVIDER-REQUIREMENT`; they do not replace provider physics.
-- Runtime wiring waits for an explicit adapter decision. The v1 fixture proves the data seam and tests its shape; it is not a placeholder physics engine.
+- The local JSON/profile harness is implemented. A live SSE/System Lab adapter still waits for capability negotiation, clock/cadence and failure-policy decisions; the v1 spectral fixture proves numerical compatibility without becoming a placeholder physics engine.
 
 ## Quality commands
 

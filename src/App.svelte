@@ -12,12 +12,22 @@
   import LineageInspector from './lib/components/LineageInspector.svelte';
   import ModeCatalogue from './lib/components/ModeCatalogue.svelte';
   import ModeScaffold from './lib/components/ModeScaffold.svelte';
+  import ProviderInputHarness from './lib/components/ProviderInputHarness.svelte';
   import ReleaseIdentity from './lib/components/ReleaseIdentity.svelte';
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
   import { createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily } from './lib/analysis';
   import { DEFAULT_CONFIG } from './lib/core';
-  import type { TreeLens } from './lib/core';
+  import type { SimulationConfig, TreeLens } from './lib/core';
+  import {
+    EXOBIOLOGY_PROVIDER_REQUIREMENTS,
+    compileProviderFixture,
+    createExobiologyProviderDraft,
+    exobiologyFixtureToSimulationConfig,
+    validateExobiologyProviderFixture,
+    type CompiledProviderFixture,
+    type ProviderFixtureDraft
+  } from './lib/contracts';
   import { EXPERIMENTS } from './lib/experiments';
   import type { EvolutionExperiment } from './lib/experiments';
   import { createLongShadowHelpTopic } from './lib/help';
@@ -34,7 +44,7 @@
   import type { RulePack } from './lib/rules';
   import { ENGINE_VERSION, LAB_VERSION, RUN_SCHEMA_VERSION } from './lib/version';
 
-  type LabArea = 'simulation' | 'rules' | 'experiments';
+  type LabArea = 'simulation' | 'inputs' | 'rules' | 'experiments';
 
   const route = resolveRoute(window.location.pathname);
   const activeMode = route.kind === 'mode' ? route.mode : null;
@@ -61,8 +71,11 @@
 
   let labArea = $state<LabArea>('simulation');
   let seed = $state('fish-and-strawberries');
-  let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries'));
-  let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries'));
+  let activeConfig = $state<SimulationConfig>(DEFAULT_CONFIG);
+  let inputDraft = $state<ProviderFixtureDraft>(createExobiologyProviderDraft());
+  let activeInputHash = $state<string | undefined>();
+  let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries', DEFAULT_CONFIG));
+  let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries', DEFAULT_CONFIG));
   const run = $derived(evaluationBundle.run);
   let tick = $state(176);
   let selectedId = $state('light-weavers');
@@ -84,6 +97,8 @@
   const temporalProjections = $derived(projectMicrobialHistories(run, evaluationBundle.comparisonRun));
   const responseView = $derived(projectMicrobialShadowResponse(responseFamily));
   const helpTopic = $derived(createLongShadowHelpTopic(evaluationBundle.evaluation));
+  const inputIssues = $derived(validateExobiologyProviderFixture(inputDraft, DEFAULT_CONFIG.duration));
+  const compiledInput = $derived(inputIssues.length === 0 ? compileProviderFixture(EXOBIOLOGY_PROVIDER_REQUIREMENTS, inputDraft) : null);
   const pageTitle = $derived(
     route.kind === 'catalogue'
       ? 'Evolution Lab · mode catalogue'
@@ -100,9 +115,11 @@
           ? `${route.mode.title}, honestly staged.`
           : labArea === 'simulation'
             ? 'Make a living system from simple rules.'
-            : labArea === 'rules'
-              ? 'Build the possibility space.'
-              : 'Keep every useful mistake.'
+            : labArea === 'inputs'
+              ? 'Define the world before it evolves.'
+              : labArea === 'rules'
+                ? 'Build the possibility space.'
+                : 'Keep every useful mistake.'
   );
   const headerSummary = $derived(
     route.kind === 'catalogue'
@@ -113,16 +130,18 @@
           ? route.mode.summary
           : labArea === 'simulation'
             ? 'One microbial film. Four authored lineages. A resource network with a stored, inspectable history.'
-            : labArea === 'rules'
-              ? 'Author scalable, declarative rulepacks without coupling the tools to SSE or the runtime.'
-              : 'Re-run, clone and compare the experiments that shaped the model.'
+            : labArea === 'inputs'
+              ? 'Create, validate and inject a pinned physical dataset through the same boundary a future provider must satisfy.'
+              : labArea === 'rules'
+                ? 'Author scalable, declarative rulepacks without coupling the tools to SSE or the runtime.'
+                : 'Re-run, clone and compare the experiments that shaped the model.'
   );
 
   function rerun() {
     stopPlayback();
     const nextSeed = seed.trim() || 'unnamed-world';
-    evaluationBundle = createMicrobialShadowEvaluation(nextSeed);
-    responseFamily = createMicrobialShadowResponseFamily(nextSeed);
+    evaluationBundle = createMicrobialShadowEvaluation(nextSeed, activeConfig);
+    responseFamily = createMicrobialShadowResponseFamily(nextSeed, activeConfig);
     tick = 176;
     selectedId = 'light-weavers';
   }
@@ -130,8 +149,11 @@
   function runExperiment(experiment: EvolutionExperiment, selectedTick = 176) {
     stopPlayback();
     seed = experiment.masterSeed;
-    evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed);
-    responseFamily = createMicrobialShadowResponseFamily(experiment.masterSeed);
+    activeConfig = DEFAULT_CONFIG;
+    activeInputHash = undefined;
+    inputDraft = createExobiologyProviderDraft();
+    evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed, activeConfig);
+    responseFamily = createMicrobialShadowResponseFamily(experiment.masterSeed, activeConfig);
     tick = selectedTick;
     selectedId = 'light-weavers';
     labArea = 'simulation';
@@ -147,6 +169,35 @@
     URL.revokeObjectURL(url);
   }
 
+  function exportProviderFixture(fixture: CompiledProviderFixture) {
+    const blob = new Blob([JSON.stringify(fixture, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${fixture.id.replace('/', '-')}-${fixture.version}.provider.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importProviderFixture(fixture: ProviderFixtureDraft) {
+    inputDraft = structuredClone(fixture);
+  }
+
+  function resetProviderFixture() {
+    inputDraft = createExobiologyProviderDraft();
+  }
+
+  function injectProviderFixture(fixture: CompiledProviderFixture) {
+    stopPlayback();
+    activeConfig = exobiologyFixtureToSimulationConfig(fixture, DEFAULT_CONFIG);
+    activeInputHash = fixture.hash;
+    const nextSeed = seed.trim() || 'unnamed-world';
+    evaluationBundle = createMicrobialShadowEvaluation(nextSeed, activeConfig);
+    responseFamily = createMicrobialShadowResponseFamily(nextSeed, activeConfig);
+    tick = 176;
+    selectedId = 'light-weavers';
+    labArea = 'simulation';
+  }
   function setTick(nextTick: number) {
     tick = Math.max(0, Math.min(DEFAULT_CONFIG.duration, Math.round(nextTick)));
   }
@@ -238,6 +289,7 @@
   {:else}
     <nav class="mode-nav" aria-label="Exobiology workspace areas">
       <button class:active={labArea === 'simulation'} onclick={() => (labArea = 'simulation')}>Live experiment</button>
+      <button class:active={labArea === 'inputs'} onclick={() => (labArea = 'inputs')}>Physical Inputs</button>
       <button class:active={labArea === 'rules'} onclick={() => (labArea = 'rules')}>Rule Workshop</button>
       <button class:active={labArea === 'experiments'} onclick={() => (labArea = 'experiments')}>Experiment Library</button>
     </nav>
@@ -282,6 +334,8 @@
         <HelpPanel topic={helpTopic} />
       </section>
 
+    {:else if labArea === 'inputs'}
+      <ProviderInputHarness profile={EXOBIOLOGY_PROVIDER_REQUIREMENTS} fixture={inputDraft} compiled={compiledInput} issues={inputIssues} activeHash={activeInputHash} onchange={(fixture) => (inputDraft = fixture)} oninject={injectProviderFixture} onreset={resetProviderFixture} onexport={exportProviderFixture} onimport={importProviderFixture} />
     {:else if labArea === 'rules'}
       <RuleWorkshop pack={workingPack} onchange={(pack) => (workingPack = pack)} onexport={exportRulePack} />
     {:else}
@@ -299,9 +353,11 @@
             ? `${route.mode.title}: route and experiment brief only`
             : labArea === 'simulation'
               ? 'Prototype milestone: microbial flask'
-              : labArea === 'rules'
-                ? 'Authoring milestone: declarative rulepacks'
-                : 'Project memory: reproducible experiments'}
+              : labArea === 'inputs'
+                ? 'Provider boundary: typed, validated, content-addressed datasets'
+                : labArea === 'rules'
+                  ? 'Authoring milestone: declarative rulepacks'
+                  : 'Project memory: reproducible experiments'}
     </span>
     <span>Framework-neutral projections · reusable Svelte components · deterministic history</span>
   </footer>

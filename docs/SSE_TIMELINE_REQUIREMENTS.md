@@ -190,3 +190,8 @@ Electromagnetic forcing should cross as a unit-aware spectrum with typed band pr
 - The UI can explain a coupled causal chain across the boundary.
 - Disabling the biological return flux produces a deterministic, visibly different counterfactual branch.
 - An authored detrital-substrate marker enters from persistent quantitative state, survives a brief threshold dip through hysteresis and leaves after sustained erosion/depletion; changing its label does not change engine behaviour.
+## Provider-profile handshake
+
+Before live integration, an SSE/System Lab adapter must advertise which versioned provider-requirement profiles and individual requirement IDs it can satisfy, including units, curve axes, cadence/resolution, provenance and validity limits. Evolution Lab rejects incomplete or incompatible datasets rather than silently filling physical facts. The current Lab JSON injector exercises this consumer boundary with immutable fixture hashes; it is not a live SSE connection.
+
+Medium/solvent identity belongs in provider/scenario data. Evolution Lab must not interpret liquid availability as water availability unless the selected domain/scenario profile explicitly declares an aqueous medium.

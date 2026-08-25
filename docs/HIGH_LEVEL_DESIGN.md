@@ -157,3 +157,8 @@ A later technosphere engine can model culture, industry, AGI, autonomous machine
 8. **Technosphere seam:** cumulative culture, technology and persistent civilisational legacies.
 
 The detailed, agent-oriented contract and current status are maintained in the repository root `ARCHITECTURE.md`.
+## Physical input harness
+
+Each mode declares its required provider data as a versioned profile rather than receiving an untyped world object. The reusable Lab harness renders that profile, validates edited or imported values, shows units and provenance, and compiles a content-addressed immutable fixture. Exobiology's first profile includes scalar physical/environmental facts and the pinned SSE spectral curves already in this repository. It describes liquid-medium availability and solvent activity without making water a universal assumption.
+
+Pushing a fixture is explicit. The run manifest records the profile and fixture hash, and only requirements marked as current prototype inputs are mapped into the microbial configuration. Other inputs remain honest recorded facts until a real mechanism consumes them. A future SSE/System Lab adapter is another producer of the same profile, not a second interface or an import of SSE code.

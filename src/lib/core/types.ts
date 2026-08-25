@@ -78,6 +78,14 @@ export interface SimulationConfig {
   shadowStartsAt: number;
   shadowEndsAt: number;
   shadowLightFraction: number;
+  meanUsableLight?: number;
+  lightCycleAmplitude?: number;
+  lightCycleDays?: number;
+  providerInput?: {
+    profileId: string;
+    profileVersion: string;
+    fixtureHash: string;
+  };
 }
 
 export interface EnvironmentFrame {
@@ -102,6 +110,11 @@ export interface RunManifest {
   scenarioId: string;
   environmentProvider: string;
   configHash: string;
+  providerInput?: {
+    profileId: string;
+    profileVersion: string;
+    fixtureHash: string;
+  };
 }
 
 export interface SimulationForkManifest {
