@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from './scenario';
 import { deriveSeed } from './rng';
 import type { EnvironmentProvider } from './types';
-import { simulate } from './simulate';
+import {
+  createSimulationCheckpoint,
+  forkSimulation,
+  resumeSimulation,
+  simulate,
+  validateSimulationCheckpoint
+} from './simulate';
 
 describe('microcosm simulation', () => {
   it('replays deterministically for the same seed', () => {
@@ -33,9 +39,7 @@ describe('microcosm simulation', () => {
 
   it('records innovations and a persistent environmental memory', () => {
     const run = simulate('history');
-    const innovationTitles = run.events
-      .filter((item) => item.kind === 'innovation')
-      .map((item) => item.title);
+    const innovationTitles = run.events.filter((item) => item.kind === 'innovation').map((item) => item.title);
     expect(innovationTitles).toContain('Light harvesting opens a new energy market');
     expect(innovationTitles).toContain('Death becomes a living resource');
     expect(innovationTitles).toContain('The producer monopoly ends');
@@ -50,13 +54,43 @@ describe('microcosm simulation', () => {
     };
     const ordinary = simulate('provider-test');
     const dark = simulate('provider-test', DEFAULT_CONFIG, darkEnvironment);
-    const ordinaryProducer = ordinary.snapshots.at(-1)?.populations.find(
-      (population) => population.lineageId === 'light-weavers'
-    );
-    const darkProducer = dark.snapshots.at(-1)?.populations.find(
-      (population) => population.lineageId === 'light-weavers'
-    );
+    const ordinaryProducer = ordinary.snapshots.at(-1)?.populations.find((population) => population.lineageId === 'light-weavers');
+    const darkProducer = dark.snapshots.at(-1)?.populations.find((population) => population.lineageId === 'light-weavers');
     expect(dark.manifest.environmentProvider).toBe('test-darkness@1');
     expect(darkProducer?.biomass).toBeLessThan(ordinaryProducer?.biomass ?? 0);
+  });
+
+  it('resumes exactly from a content-addressed checkpoint', () => {
+    const uninterrupted = simulate('checkpoint-resume');
+    const checkpoint = createSimulationCheckpoint(uninterrupted, uninterrupted.config.shadowStartsAt - 1);
+    const resumed = resumeSimulation(checkpoint);
+    expect(validateSimulationCheckpoint(checkpoint)).toBe(true);
+    expect(resumed.snapshots).toEqual(uninterrupted.snapshots);
+    expect(resumed.events).toEqual(uninterrupted.events);
+  });
+
+  it('forks deterministic futures from one identical stored prefix', () => {
+    const source = simulate('checkpoint-fork');
+    const checkpoint = createSimulationCheckpoint(source, source.config.shadowStartsAt - 1);
+    const shadow = forkSimulation(checkpoint, {
+      id: 'test/shadow', version: '1.0.0', role: 'shadow', appliedAt: checkpoint.tick + 1,
+      description: 'Retain the scripted shadow.', config: source.config
+    });
+    const control = forkSimulation(checkpoint, {
+      id: 'test/control', version: '1.0.0', role: 'control', appliedAt: checkpoint.tick + 1,
+      description: 'Move the shadow outside the stored run.',
+      config: { ...source.config, shadowStartsAt: source.config.duration + 1, shadowEndsAt: source.config.duration + 1 }
+    });
+    expect(shadow.fork?.parentCheckpointHash).toBe(checkpoint.hash);
+    expect(control.fork?.parentCheckpointHash).toBe(checkpoint.hash);
+    expect(shadow.snapshots.slice(0, checkpoint.tick + 1)).toEqual(control.snapshots.slice(0, checkpoint.tick + 1));
+    expect(shadow.snapshots[checkpoint.tick + 1]).not.toEqual(control.snapshots[checkpoint.tick + 1]);
+  });
+
+  it('rejects a tampered checkpoint before resume', () => {
+    const checkpoint = createSimulationCheckpoint(simulate('tamper'), 120);
+    checkpoint.snapshots[0].resources.carbon += 1;
+    expect(validateSimulationCheckpoint(checkpoint)).toBe(false);
+    expect(() => resumeSimulation(checkpoint)).toThrow(/content hash/);
   });
 });

@@ -35,6 +35,7 @@
           <div><span>Master seed</span><strong>{experiment.masterSeed}</strong></div>
           <div><span>Environment</span><strong>{experiment.environmentProvider}</strong></div>
           <div><span>Rules</span><strong>{experiment.rulePackIds.join(', ')}</strong></div>
+          <div><span>Manifest</span><strong>{experiment.manifestHash ?? 'not pinned'}</strong></div>
         </div>
 
         <details open>
@@ -48,7 +49,7 @@
 
         <div class="checkpoints">
           <span>Jump to checkpoint</span>
-          <div>{#each experiment.checkpoints as checkpoint}<button title={checkpoint.note} onclick={() => onrun(experiment, checkpoint.tick)}>D{checkpoint.tick}</button>{/each}</div>
+          <div>{#each experiment.checkpoints as checkpoint}<button title={checkpoint.note + (checkpoint.expectedHash ? ' · ' + checkpoint.expectedHash : '')} aria-label={'Inspect day ' + checkpoint.tick + (checkpoint.expectedHash ? ', verified checkpoint' : '')} onclick={() => onrun(experiment, checkpoint.tick)}>D{checkpoint.tick}<small>{checkpoint.expectedHash ? '✓' : '–'}</small></button>{/each}</div>
         </div>
 
         <footer><button onclick={() => onopenrules(experiment)}>Inspect its rules</button><button class="primary" onclick={() => onrun(experiment)}>Run experiment</button></footer>
@@ -90,6 +91,7 @@
   .checkpoints > span { color: var(--text-faint); font-size: 0.58rem; text-transform: uppercase; }
   .checkpoints div { display: flex; gap: 0.28rem; }
   .checkpoints button { padding: 0.3rem 0.38rem; border-radius: var(--radius-sm); font: 0.58rem var(--font-mono); }
+  .checkpoints button small { margin-left: 0.2rem; color: #74dca6; font-size: 0.52rem; }
   footer { display: flex; justify-content: flex-end; gap: 0.45rem; margin-top: 0.85rem; }
   footer button { padding: 0.52rem 0.65rem; border-radius: var(--radius-sm); font-size: 0.68rem; }
   footer .primary { color: white; background: var(--accent); border-color: var(--accent); }

@@ -12,6 +12,7 @@ export interface EvolutionExperiment {
   title: string;
   summary: string;
   status: ExperimentStatus;
+  manifestHash?: string;
   masterSeed: string;
   environmentProvider: string;
   rulePackIds: string[];

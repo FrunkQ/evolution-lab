@@ -25,6 +25,6 @@ export interface HelpTopic {
   title: string;
   intro: string;
   lenses: Record<HelpAudience, HelpLens>;
-  diagram: { kind: 'paired-rerun'; label: string; shared: string; changed: string; comparison: string; };
+  diagram: { kind: 'paired-checkpoint'; label: string; shared: string; changed: string; comparison: string; };
   conceptDemo: ConceptDemo;
 }

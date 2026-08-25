@@ -1,3 +1,4 @@
+import { stableChecksum } from './canonical';
 import { createRng, deriveSeed } from './rng';
 import { DEFAULT_CONFIG, LINEAGES, MICROBIAL_SCENARIO_IDENTITY } from './scenario';
 import { scriptedMicrocosmEnvironment } from './environment';
@@ -5,11 +6,16 @@ import { ENGINE_VERSION, RUN_SCHEMA_VERSION } from '../version';
 import type {
   EnvironmentProvider,
   FlowRecord,
+  LineageDefinition,
   PopulationState,
+  ResourceKey,
   ResourceLedger,
   SignatureState,
+  SimulationCheckpoint,
   SimulationConfig,
   SimulationEvent,
+  SimulationForkManifest,
+  SimulationPerturbation,
   SimulationRun,
   WorldSnapshot
 } from './types';
@@ -34,51 +40,105 @@ function event(
   return { id, tick, kind, title, summary, causes, affectedLineageIds };
 }
 
-export function simulate(
-  seed = 'fish-and-strawberries',
-  config: SimulationConfig = DEFAULT_CONFIG,
-  environment: EnvironmentProvider = scriptedMicrocosmEnvironment
-): SimulationRun {
+function cloneEvent(source: SimulationEvent): SimulationEvent {
+  return {
+    ...source,
+    causes: [...source.causes],
+    affectedLineageIds: [...source.affectedLineageIds]
+  };
+}
+
+function cloneLineage(source: LineageDefinition): LineageDefinition {
+  return {
+    ...source,
+    vocabulary: { ...source.vocabulary },
+    capabilities: source.capabilities.map((capability) => ({ ...capability }))
+  };
+}
+
+function cloneSnapshot(source: WorldSnapshot): WorldSnapshot {
+  return {
+    tick: source.tick,
+    resources: { ...source.resources },
+    populations: source.populations.map((item) => ({ ...item })),
+    flows: source.flows.map((flow) => ({ ...flow })),
+    signatures: { ...source.signatures },
+    events: source.events.map(cloneEvent)
+  };
+}
+
+function manifestFor(
+  seed: string,
+  config: SimulationConfig,
+  environment: EnvironmentProvider
+): SimulationRun['manifest'] {
   const seedPath = ['evolution', 'microbial-flask', 'ecology-v1'];
-  const scopedSeed = deriveSeed(seed, ...seedPath);
-  const rng = createRng(scopedSeed);
+  return {
+    masterSeed: seed,
+    scopedSeed: deriveSeed(seed, ...seedPath),
+    seedPath,
+    engineVersion: ENGINE_VERSION,
+    schemaVersion: RUN_SCHEMA_VERSION,
+    scenarioId: MICROBIAL_SCENARIO_IDENTITY,
+    environmentProvider: `${environment.id}@${environment.version}`,
+    configHash: stableChecksum('simulation-config-v1', config)
+  };
+}
+
+interface SimulationStart {
+  checkpoint?: SimulationCheckpoint;
+  fork?: SimulationForkManifest;
+}
+
+function runSimulation(
+  seed: string,
+  config: SimulationConfig,
+  environment: EnvironmentProvider,
+  start: SimulationStart = {}
+): SimulationRun {
+  const manifest = manifestFor(seed, config, environment);
+  const rng = createRng(manifest.scopedSeed);
   const variation = 0.94 + rng() * 0.12;
-  const resources: ResourceLedger = {
-    light: 74,
-    carbon: 190,
-    minerals: 145,
-    oxygen: 1.2,
-    detritus: 5
-  };
-  const signatures: SignatureState = {
-    oxygenation: 0,
-    oxidizedMinerals: 0,
-    organicSediment: 0
-  };
-  const populations = new Map<string, PopulationState>([
-    ['basal-loop', population('basal-loop', 10, true)],
-    ['light-weavers', population('light-weavers', 0)],
-    ['silt-recyclers', population('silt-recyclers', 0)],
-    ['veil-grazers', population('veil-grazers', 0)]
-  ]);
-  const snapshots: WorldSnapshot[] = [];
-  const events: SimulationEvent[] = [
-    event(
-      'microcosm-begins',
-      0,
-      'origin',
-      'The warm film is seeded',
-      'Basal chemical replicators enter a carbon-rich mineral film.',
-      ['Liquid connectivity', 'reduced minerals', 'available carbon'],
-      ['basal-loop']
-    )
-  ];
+  const checkpointSnapshot = start.checkpoint?.snapshots.at(-1);
+  const resources: ResourceLedger = checkpointSnapshot
+    ? { ...checkpointSnapshot.resources }
+    : { light: 74, carbon: 190, minerals: 145, oxygen: 1.2, detritus: 5 };
+  const signatures: SignatureState = checkpointSnapshot
+    ? { ...checkpointSnapshot.signatures }
+    : { oxygenation: 0, oxidizedMinerals: 0, organicSediment: 0 };
+  const populations = new Map<string, PopulationState>(
+    checkpointSnapshot
+      ? checkpointSnapshot.populations.map((item) => [item.lineageId, { ...item }])
+      : [
+          ['basal-loop', population('basal-loop', 10, true)],
+          ['light-weavers', population('light-weavers', 0)],
+          ['silt-recyclers', population('silt-recyclers', 0)],
+          ['veil-grazers', population('veil-grazers', 0)]
+        ]
+  );
+  const snapshots: WorldSnapshot[] = start.checkpoint
+    ? start.checkpoint.snapshots.map(cloneSnapshot)
+    : [];
+  const events: SimulationEvent[] = start.checkpoint
+    ? start.checkpoint.events.map(cloneEvent)
+    : [
+        event(
+          'microcosm-begins',
+          0,
+          'origin',
+          'The warm film is seeded',
+          'Basal chemical replicators enter a carbon-rich mineral film.',
+          ['Liquid connectivity', 'reduced minerals', 'available carbon'],
+          ['basal-loop']
+        )
+      ];
+  const lineages = (start.checkpoint?.lineages ?? LINEAGES).map(cloneLineage);
+  let phototrophActive = populations.get('light-weavers')?.active ?? false;
+  let recyclerActive = populations.get('silt-recyclers')?.active ?? false;
+  let grazerActive = populations.get('veil-grazers')?.active ?? false;
+  const firstTick = start.checkpoint ? start.checkpoint.tick + 1 : 0;
 
-  let phototrophActive = false;
-  let recyclerActive = false;
-  let grazerActive = false;
-
-  for (let tick = 0; tick <= config.duration; tick += 1) {
+  for (let tick = firstTick; tick <= config.duration; tick += 1) {
     const tickEvents: SimulationEvent[] = events.filter((item) => item.tick === tick);
     const flows: FlowRecord[] = [];
     const environmentFrame = environment.frameAt(tick, config);
@@ -87,8 +147,8 @@ export function simulate(
     resources.carbon += environmentFrame.inflows.carbon ?? 0;
     resources.oxygen += environmentFrame.inflows.oxygen ?? 0;
     resources.detritus += environmentFrame.inflows.detritus ?? 0;
-    events.push(...environmentFrame.events);
-    tickEvents.push(...environmentFrame.events);
+    events.push(...environmentFrame.events.map(cloneEvent));
+    tickEvents.push(...environmentFrame.events.map(cloneEvent));
 
     const basal = populations.get('basal-loop')!;
     const basalLimit = Math.min(resources.carbon / 32, resources.minerals / 26, 1);
@@ -223,43 +283,108 @@ export function simulate(
       resources.minerals = clamp(resources.minerals + 4, 0, 250);
     }
 
-    const roundedPopulations = Array.from(populations.values()).map((item) => ({
-      ...item,
-      biomass: round(item.biomass),
-      productivity: round(item.productivity),
-      stress: round(item.stress)
-    }));
+    for (const key of Object.keys(resources) as ResourceKey[]) resources[key] = round(resources[key]);
+    for (const item of populations.values()) {
+      item.biomass = round(item.biomass);
+      item.productivity = round(item.productivity);
+      item.stress = round(item.stress);
+    }
+    signatures.oxygenation = round(signatures.oxygenation);
+    signatures.oxidizedMinerals = round(signatures.oxidizedMinerals);
+    signatures.organicSediment = round(signatures.organicSediment);
 
     snapshots.push({
       tick,
-      resources: Object.fromEntries(
-        Object.entries(resources).map(([key, value]) => [key, round(value)])
-      ) as ResourceLedger,
-      populations: roundedPopulations,
-      flows: flows.filter((flow) => flow.amount > 0.01).map((flow) => ({ ...flow, amount: round(flow.amount) })),
-      signatures: {
-        oxygenation: round(signatures.oxygenation),
-        oxidizedMinerals: round(signatures.oxidizedMinerals),
-        organicSediment: round(signatures.organicSediment)
-      },
-      events: [...tickEvents]
+      resources: { ...resources },
+      populations: Array.from(populations.values()).map((item) => ({ ...item })),
+      flows: flows
+        .filter((flow) => flow.amount > 0.01)
+        .map((flow) => ({ ...flow, amount: round(flow.amount) })),
+      signatures: { ...signatures },
+      events: tickEvents.map(cloneEvent)
     });
   }
 
   return {
     seed,
-    manifest: {
-      masterSeed: seed,
-      scopedSeed,
-      seedPath,
-      engineVersion: ENGINE_VERSION,
-      schemaVersion: RUN_SCHEMA_VERSION,
-      scenarioId: MICROBIAL_SCENARIO_IDENTITY,
-      environmentProvider: `${environment.id}@${environment.version}`
-    },
-    config,
-    lineages: LINEAGES,
+    manifest,
+    config: { ...config },
+    lineages,
     snapshots,
-    events
+    events,
+    ...(start.fork ? { fork: { ...start.fork } } : {})
   };
+}
+
+export function simulate(
+  seed = 'fish-and-strawberries',
+  config: SimulationConfig = DEFAULT_CONFIG,
+  environment: EnvironmentProvider = scriptedMicrocosmEnvironment
+): SimulationRun {
+  return runSimulation(seed, config, environment);
+}
+
+function checkpointPayload(checkpoint: Omit<SimulationCheckpoint, 'hash'>) {
+  return checkpoint;
+}
+
+export function createSimulationCheckpoint(run: SimulationRun, tick: number): SimulationCheckpoint {
+  if (!Number.isInteger(tick) || tick < 0 || tick > run.config.duration) {
+    throw new Error('Checkpoint tick must be an integer inside the stored run.');
+  }
+  const snapshots = run.snapshots.filter((snapshot) => snapshot.tick <= tick).map(cloneSnapshot);
+  if (snapshots.at(-1)?.tick !== tick) throw new Error(`Run has no stored snapshot for checkpoint day ${tick}.`);
+  const withoutHash: Omit<SimulationCheckpoint, 'hash'> = {
+    format: 'evolution-checkpoint/0.1',
+    tick,
+    seed: run.seed,
+    manifest: { ...run.manifest, seedPath: [...run.manifest.seedPath] },
+    config: { ...run.config },
+    lineages: run.lineages.map(cloneLineage),
+    snapshots,
+    events: run.events.filter((item) => item.tick <= tick).map(cloneEvent)
+  };
+  return {
+    ...withoutHash,
+    hash: stableChecksum('evolution-checkpoint-v1', checkpointPayload(withoutHash))
+  };
+}
+
+export function validateSimulationCheckpoint(checkpoint: SimulationCheckpoint): boolean {
+  const { hash, ...withoutHash } = checkpoint;
+  return hash === stableChecksum('evolution-checkpoint-v1', checkpointPayload(withoutHash));
+}
+
+export function resumeSimulation(
+  checkpoint: SimulationCheckpoint,
+  config: SimulationConfig = checkpoint.config,
+  environment: EnvironmentProvider = scriptedMicrocosmEnvironment,
+  fork?: SimulationForkManifest
+): SimulationRun {
+  if (!validateSimulationCheckpoint(checkpoint)) throw new Error('Checkpoint content hash does not match its stored state.');
+  if (config.duration < checkpoint.tick) throw new Error('A resumed duration cannot end before its parent checkpoint.');
+  if (`${environment.id}@${environment.version}` !== checkpoint.manifest.environmentProvider) {
+    throw new Error('Checkpoint resume requires the pinned environment provider identity.');
+  }
+  return runSimulation(checkpoint.seed, config, environment, { checkpoint, fork });
+}
+
+export function forkSimulation(
+  checkpoint: SimulationCheckpoint,
+  perturbation: SimulationPerturbation,
+  environment: EnvironmentProvider = scriptedMicrocosmEnvironment
+): SimulationRun {
+  if (perturbation.appliedAt !== checkpoint.tick + 1) {
+    throw new Error('A fork perturbation must activate on the first day after its parent checkpoint.');
+  }
+  const perturbationHash = stableChecksum('simulation-perturbation-v1', perturbation);
+  return resumeSimulation(checkpoint, perturbation.config, environment, {
+    parentCheckpointHash: checkpoint.hash,
+    role: perturbation.role,
+    perturbationId: perturbation.id,
+    perturbationVersion: perturbation.version,
+    perturbationHash,
+    appliedAt: perturbation.appliedAt,
+    description: perturbation.description
+  });
 }

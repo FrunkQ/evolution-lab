@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createMicrobialShadowEvaluation } from '../analysis';
 import { simulate } from '../core';
 import {
   downsampleTemporalProjection,
@@ -23,19 +24,17 @@ describe('temporal history projection', () => {
     }
   });
 
-  it('adds an honest aligned no-shadow comparison when supplied', () => {
-    const run = simulate('paired-projection');
-    const control = simulate('paired-projection', {
-      ...run.config,
-      shadowStartsAt: run.config.duration + 1,
-      shadowEndsAt: run.config.duration + 1
-    });
-    const projection = projectMicrobialBiomassHistory(run, control);
+  it('projects checkpoint control and shadow histories with an honest fork marker', () => {
+    const bundle = createMicrobialShadowEvaluation('paired-projection');
+    const projection = projectMicrobialBiomassHistory(bundle.run, bundle.comparisonRun);
     const comparison = projection.series.find((series) => series.id === 'comparison/no-long-shadow');
 
-    expect(comparison?.samples).toHaveLength(run.snapshots.length);
-    expect(projection.explanation.join(' ')).toMatch(/not a checkpoint fork/i);
-    expect(projection.markers.map((marker) => marker.id)).toEqual(run.events.map((event) => event.id));
+    expect(comparison?.samples).toHaveLength(bundle.run.snapshots.length);
+    expect(projection.explanation.join(' ')).toMatch(/same verified checkpoint/i);
+    expect(projection.markers).toContainEqual(expect.objectContaining({
+      tick: bundle.checkpoint.tick + 1,
+      kind: 'fork'
+    }));
   });
 
   it('is deterministic for the same seeded run', () => {
@@ -61,6 +60,13 @@ describe('temporal history projection', () => {
       expect(Math.max(...series.samples.map((sample) => sample.value))).toBeCloseTo(100);
     }
     expect(source.unit).toBe('experimental biomass units');
+  });
+
+  it('rejects relative display when the projection does not define one', () => {
+    const source = projectMicrobialBiomassHistory(simulate('no-relative'));
+    expect(() => projectTemporalView({ ...source, relativeMode: null }, 'relative')).toThrow(
+      /does not define a dimensionally valid relative view/
+    );
   });
 
   it('downsamples deterministically while retaining boundaries, events and the inspected tick', () => {

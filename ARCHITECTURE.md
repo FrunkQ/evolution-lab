@@ -14,7 +14,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
-| Add or change run evaluation | `INV-LEGIBILITY`, `CTR-EVALUATION-VIEW`, `DEC-021` | `src/lib/analysis/pairedBiomass.ts`, its tests, then `ExperimentFeedback.svelte` |
+| Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-VIEW`, `DEC-026` | `src/lib/analysis/pairedBiomass.ts`, its tests, then `ExperimentFeedback.svelte` |
 | Add or change educational help | `INV-LEGIBILITY`, `CTR-HELP-VIEW`, `DEC-022` | `docs/EDUCATION_AND_HELP.md`, `src/lib/help/`, its tests, then `HelpPanel.svelte` |
 | Add or change a product mode/route | `INV-PRESENTATION`, `CTR-MODE`, `DEC-018`, `DEC-020` | `src/lib/modes/catalog.ts`, its tests, then the app shell |
 | Add or change a temporal chart | `CTR-TEMPORAL-VIEW`, `DEC-019` | `src/lib/projections/temporal.ts`, its tests, then `LevelsThroughTime.svelte` |
@@ -142,15 +142,15 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-CHEM` | future `src/lib/chemistry` | solvents, stoichiometry, accessible gradients and compatibility | core contracts only | planned |
 | `MOD-ECOLOGY` | future core subdivision | populations, sparse resource network, habitats and disturbances | core + chemistry contracts | prototype embedded in `simulate.ts` |
 | `MOD-LINEAGE` | future core subdivision | variation, inheritance, split/merge/transfer and major transitions | core contracts | planned |
-| `MOD-HISTORY` | future core subdivision | events, epochs, checkpoints, causal graph and authored overrides | core contracts | event prototype |
+| `MOD-HISTORY` | `src/lib/core/simulate.ts` plus future core subdivision | snapshots, events, content-hashed checkpoints, exact resume/fork, later epochs and causal graph | core contracts | checkpoint/fork prototype; event sourcing planned |
 | `MOD-SIGNATURE` | future core subdivision | active effects, transport, preservation, detection and interpretation | environment + history contracts | minimal prototype |
 | `MOD-DESC` | `src/lib/core/describe.ts` | derive chemistry/ecology/story wording from facts | read-only core models | prototype |
 | `MOD-RULES` | `src/lib/rules` | rulepack types, validation, canonical checksum, compilation and indexes | plain TypeScript/data; no Svelte or SSE | implemented authoring boundary |
 | `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
-| `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types, biomass history and paired-comparison projection, visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented prototype |
-| `MOD-ANALYSIS` | `src/lib/analysis` | framework-neutral paired-run validity, survival, recovery and change projections | read-only over aligned `SimulationRun` values; no Svelte/browser state | implemented first feedback slice |
+| `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types; biomass, positive-productivity, weighted-stress and resource histories; checkpoint-control overlays; reserved run palette; visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented checkpoint-feedback slice |
+| `MOD-ANALYSIS` | `src/lib/analysis` | framework-neutral checkpoint control/shadow validity, survival, recovery, productive-flow, stress, volatility, retained-function and causal-step projections | read-only over aligned `SimulationRun` values; no Svelte/browser state | implemented checkpoint-feedback slice |
 | `MOD-HELP` | `src/lib/help` | cumulative Curious/Biology/Engine teaching content and isolated concept-demo data | consumes analysis facts; cannot import or mutate app/runtime state | implemented first teaching slice |
-| `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog and learning metadata | depends on contracts, not app state | prototype |
+| `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, canonical manifest hashes, expected checkpoint hashes and learning metadata | depends on contracts, not app state | microbial reference experiment implemented |
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
 | `MOD-RULE-UI` | `RuleWorkshop.svelte`, `RuleEditor.svelte` | scalable rulepack authoring and validation surface | consumes rule contracts by props/callbacks | prototype |
 | `MOD-LAB` | `src/App.svelte` | experimental host, controls and composition | may use core and reusable UI | prototype |
@@ -209,6 +209,12 @@ Every significant event has:
 
 Long quiet spans become epochs with summary curves and checkpoints. Event windows retain denser resolution.
 
+
+### `CTR-CHECKPOINT` Content-hashed exact resume and fork
+
+An implemented `SimulationCheckpoint` captures one stored daily boundary: master seed, run manifest and full configuration, authored lineage definitions, the snapshot/event prefix, and the exact rounded runtime state needed to continue. Its canonical content hash excludes no causal input. Validation occurs before resume. Resume rejects a different provider identity and must reproduce the snapshots and events of an uninterrupted run exactly.
+
+A fork manifest records parent checkpoint hash, role, perturbation identity/version/hash, activation day and description. Control and shadow futures share an identical prefix through the checkpoint and activate on the following stored day. Only declared configuration fields may differ. This is a domain-level deterministic fork over the current fixed-step prototype, not yet an event-sourced store, counter-based random-addressing system or browser persistence format.
 ### `CTR-SIGNATURE` Generalized environmental memory
 
 Any lineage, geological process, astronomical event or technology may emit a signature contribution:
@@ -250,16 +256,16 @@ Components use CSS variables compatible with SSE’s design tokens and remain th
 
 ### `CTR-TEMPORAL-VIEW` Framework-neutral temporal projection
 
-A temporal chart receives explicit `TemporalProjection` data containing typed series, samples, units and optional markers. The implemented exobiology adapter projects only daily snapshot biomass and existing recorded events. When supplied an aligned no-shadow comparison run it adds one explicitly labelled total-biomass series; it does not fabricate markers or call this a checkpoint fork. Presentation styles are separate data; the renderer does not read engine state.
+A temporal chart receives explicit `TemporalProjection` data containing typed series, samples, units and markers. The implemented exobiology adapters project four selectable views from stored facts: aggregate/lineage biomass, summed positive population productivity, biomass-weighted stress, and resource levels. Paired quantities compare control and long-shadow futures resumed from the same verified checkpoint. Markers are recorded run events plus the recorded fork; projections never fabricate a scientific event.
 
-Absolute series shown together use the same experimental biomass unit. The optional relative view is dimensionless and scales each series against its own stored-history maximum; it compares curve shape, not magnitude. Deterministic downsampling preserves boundaries, recorded marker ticks and the inspected tick. Toggling, hover/focus and keyboard inspection may change the shared UI cursor but cannot rerun or mutate the simulation.
+Absolute series shown together use the declared unit for that view. Relative mode is available only when dimensionally honest and scales each series against its own stored-history maximum; it compares curve shape, not magnitude. The stress view intentionally has no relative mode. The resource view states that its shared experimental ledger scale does not make light and material stocks physically interchangeable.
 
-### `CTR-EVALUATION-VIEW` Plain-language paired-run evaluation
+Presentation styles are separate data; the renderer does not read engine state. Whole-run observed/shadow and control series use two reserved colours that lineage styles may not borrow. Dash patterns, symbols and text labels remain required non-colour cues. Deterministic downsampling preserves boundaries, recorded marker ticks and the inspected tick. Switching views, toggling, hover/focus and keyboard inspection may change the shared UI cursor but cannot rerun or mutate the simulation.
+### `CTR-EVALUATION-VIEW` Plain-language checkpoint control/shadow evaluation
 
-The implemented microbial evaluator compares the ordinary run day-for-day with a full deterministic rerun using the same seed, engine, scenario, provider, initial state and nutrient pulse, but with the scripted long-shadow interval moved beyond the stored duration. It reports ordinary questions - survival, recovery, amount changed and fragility - plus underlying thresholds, metrics, checks and limitations.
+The implemented microbial evaluator resumes control and long-shadow futures from the same verified checkpoint immediately before the light change. It compares same-time snapshots and reports five ordinary questions: survival, recovery, accumulated loss, instability/stress and retained represented functions. Supporting metrics include minimum biomass retention, recovery time, integrated biomass loss, end difference, post-return volatility, peak biomass-weighted stress, minimum positive-productivity retention and retained authored capabilities. A generated causal trail links the fork, first stored resource difference, first population-productivity response, deepest bottleneck and outcome back to timeline days.
 
-Recovery currently means at least 90% of same-time comparison biomass for 14 consecutive stored days. The evaluator checks repeatability, finite values and non-negative stored stocks. Complete conservation, accounting debt, scientific calibration, content-addressed checkpoints and true shadow forks remain explicit non-claims. A failed implemented check makes the comparison invalid; unavailable checks are shown rather than guessed.
-
+Recovery currently means at least 90% of same-time control biomass for 14 consecutive stored days. Hard gates currently verify checkpoint integrity, shared-prefix identity, declared branch isolation, resume equivalence, finite values, non-negative stored stocks, exact fork repeatability and absence of one declared unsupported-runaway pattern. Any failed implemented gate makes the result invalid and prominent. Complete unit-aware conservation and accounting for material introduced by prototype floors/caps remain unavailable gates displayed beside the result; scientific calibration is not claimed.
 ### `CTR-HELP-VIEW` Cumulative educational explanation
 
 One help topic has stable identity/version and three cumulative lenses over the same fact and limitation IDs:
@@ -320,7 +326,7 @@ The runtime receives only a validated immutable compiled pack. Draft state, sele
 
 ### `CTR-EXPERIMENT` Reproducible experiment
 
-An experiment records stable identity/version/status, questions, master seed, provider and pack versions, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires expected checkpoint hashes and promotes the experiment to a regression fixture. Retired experiments remain readable.
+An experiment records stable identity/version/status, questions, master seed, provider and pack versions, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires a canonical manifest hash plus an expected content hash for every declared checkpoint and promotes the experiment to a regression fixture. Silent content changes invalidate the manifest hash. Retired experiments remain readable.
 
 ### `CTR-MARKER` Authorable derived state and epoch marker
 
@@ -387,9 +393,9 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-003` The Rule Workshop and Experiment Library are permanent reusable product surfaces. They must remain navigable with hundreds of rules/experiments through search, filters, paging/virtualisation and dependency views.
 
-`UI-004` Levels Through Time is a reusable native-SVG component over `CTR-TEMPORAL-VIEW`. It supports labelled visibility controls, non-colour line/symbol distinctions, pointer and keyboard time inspection, real event markers and an explicit explanation of present non-claims.
+`UI-004` Levels Through Time is a reusable native-SVG component over `CTR-TEMPORAL-VIEW`. A local History Explorer selects one compatible projection above it. The renderer supports labelled visibility controls, reserved run colours plus non-colour line/symbol distinctions, pointer and keyboard time inspection, real event/fork markers and an explicit explanation of present non-claims.
 
-`UI-005` Experiment Feedback answers Did it survive/recover/change/remain fragile before exposing checks, thresholds and limitations. It consumes only `CTR-EVALUATION-VIEW`.
+`UI-005` Experiment Feedback answers survival/recovery/loss/instability/retained-function questions, exposes a timeline-linked causal trail, and makes failed or unavailable hard gates visible before detailed thresholds and limitations. It consumes only `CTR-EVALUATION-VIEW`.
 
 `UI-006` Help Panel mirrors the established three-lens interaction with cumulative Curious/Biology/Engine explanations, a schematic comparison diagram and an isolated light concept slider. The Story/Ecology/Chemistry vocabulary selector remains local to the lineage description it changes.
 
@@ -506,11 +512,13 @@ Initial design target per world:
 | `DEC-019` | Project stored history into a framework-neutral temporal-series contract; render it through a presentation-only native-SVG component connected to the existing inspection cursor. | accepted |
 | `DEC-020` | Keep deterministic per-mode content version, intentional ISO last-edit date, lifecycle, focus, route and scenario identity in one typed catalogue, ordered recent-first with a stable ID tie-break. | accepted |
 
-| `DEC-021` | Until checkpoint branching exists, evaluate the long shadow through aligned full deterministic reruns with one declared input difference and same-time comparison; label the limitation explicitly. | accepted |
+| `DEC-021` | Until checkpoint branching exists, evaluate the long shadow through aligned full deterministic reruns with one declared input difference and same-time comparison; label the limitation explicitly. | superseded by `DEC-026` |
 | `DEC-022` | Teach one result through cumulative Curious, Biology and Engine lenses sharing facts/limits, diagrams and isolated one-slider concept demos. | accepted |
 | `DEC-023` | Keep explanatory controls local to their effect: Story/Ecology/Chemistry belongs inside the lineage description, separate from analysis-help lenses. | accepted |
 | `DEC-024` | Rename the public biological mode and route to Exobiology at `/exobiology` before external use, with no superseded route alias. | accepted |
 | `DEC-025` | Target plausibly close, conceptually defensible aggregate mechanisms and challengeable learning, not scientific proof or calibrated prediction. | accepted |
+| `DEC-026` | At a rounded stored-day boundary, capture a content-hashed exact checkpoint; validate it before resume; and evaluate declared control/shadow futures whose identical prefix and uninterrupted-run equivalence are tested. | accepted |
+| `DEC-027` | Reserve distinct presentation colours for whole-run observed/shadow and control series; lineage series cannot reuse them and every line retains a non-colour cue. | accepted |
 
 ## 16. Open questions
 

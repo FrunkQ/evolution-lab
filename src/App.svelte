@@ -7,7 +7,7 @@
   import EvolutionTimeline from './lib/components/EvolutionTimeline.svelte';
   import EvolutionTree from './lib/components/EvolutionTree.svelte';
   import HelpPanel from './lib/components/HelpPanel.svelte';
-  import LevelsThroughTime from './lib/components/LevelsThroughTime.svelte';
+  import HistoryExplorer from './lib/components/HistoryExplorer.svelte';
   import LineageInspector from './lib/components/LineageInspector.svelte';
   import ModeCatalogue from './lib/components/ModeCatalogue.svelte';
   import ModeScaffold from './lib/components/ModeScaffold.svelte';
@@ -22,8 +22,12 @@
   import { createLongShadowHelpTopic } from './lib/help';
   import { INSTALLED_MODES, resolveRoute } from './lib/modes/catalog';
   import { MICROBIAL_SCENE_VIEW } from './lib/projections/scene';
-  import { projectMicrobialBiomassHistory } from './lib/projections/temporal';
-  import type { TemporalSeriesStyle } from './lib/projections/presentation';
+  import {
+    projectMicrobialHistories,
+    RESERVED_RUN_COLORS,
+    validateTemporalSeriesStyles,
+    type TemporalSeriesStyle
+  } from './lib/projections';
   import { cloneDefaultRulePack } from './lib/rules';
   import type { RulePack } from './lib/rules';
   import { ENGINE_VERSION, LAB_VERSION, RUN_SCHEMA_VERSION } from './lib/version';
@@ -33,13 +37,25 @@
   const route = resolveRoute(window.location.pathname);
   const activeMode = route.kind === 'mode' ? route.mode : null;
   const seriesStyles: TemporalSeriesStyle[] = [
-    { seriesId: 'total-active-biomass', color: '#f1f3f5', areaOpacity: 1, symbol: '━━' },
-    { seriesId: 'comparison/no-long-shadow', color: '#8fb7d4', dashPattern: '5 4', symbol: '┈' },
-    { seriesId: 'lineage/basal-loop', color: '#b7c7d9', dashPattern: '7 3', symbol: '┄' },
+    { seriesId: 'total-active-biomass', color: RESERVED_RUN_COLORS.observed, areaOpacity: 1, symbol: '━━' },
+    { seriesId: 'comparison/no-long-shadow', color: RESERVED_RUN_COLORS.control, dashPattern: '5 4', symbol: '┈' },
+    { seriesId: 'lineage/basal-loop', color: '#b99cff', dashPattern: '7 3', symbol: '┄' },
     { seriesId: 'lineage/light-weavers', color: '#68e0a3', symbol: '●' },
     { seriesId: 'lineage/silt-recyclers', color: '#ffc46b', dashPattern: '2 3', symbol: '◆' },
-    { seriesId: 'lineage/veil-grazers', color: '#f07f73', dashPattern: '10 3 2 3', symbol: '▲' }
+    { seriesId: 'lineage/veil-grazers', color: '#f07f73', dashPattern: '10 3 2 3', symbol: '▲' },
+    { seriesId: 'productive/shadow', color: RESERVED_RUN_COLORS.observed, symbol: '━━' },
+    { seriesId: 'productive/control', color: RESERVED_RUN_COLORS.control, dashPattern: '5 4', symbol: '┈' },
+    { seriesId: 'stress/shadow', color: RESERVED_RUN_COLORS.observed, symbol: '━━' },
+    { seriesId: 'stress/control', color: RESERVED_RUN_COLORS.control, dashPattern: '5 4', symbol: '┈' },
+    { seriesId: 'resource/light', color: '#ffe08a', symbol: '☀' },
+    { seriesId: 'resource/carbon', color: '#c28f68', dashPattern: '6 3', symbol: '◆' },
+    { seriesId: 'resource/minerals', color: '#d6d9df', dashPattern: '2 3', symbol: '◇' },
+    { seriesId: 'resource/oxygen', color: '#65d6ef', symbol: '○' },
+    { seriesId: 'resource/detritus', color: '#e09a61', dashPattern: '10 3 2 3', symbol: '▲' },
+    { seriesId: 'resource/control-light', color: RESERVED_RUN_COLORS.control, dashPattern: '5 4', symbol: '┈' }
   ];
+  const seriesStyleErrors = validateTemporalSeriesStyles(seriesStyles);
+  if (seriesStyleErrors.length) throw new Error(seriesStyleErrors.join(' '));
 
   let labArea = $state<LabArea>('simulation');
   let seed = $state('fish-and-strawberries');
@@ -62,7 +78,7 @@
   const activePopulations = $derived(snapshot.populations.filter((population) => population.active));
   const totalBiomass = $derived(activePopulations.reduce((total, population) => total + population.biomass, 0));
   const visibleEvents = $derived(run.events.filter((event) => event.tick <= tick).slice(-5).reverse());
-  const temporalProjection = $derived(projectMicrobialBiomassHistory(run, evaluationBundle.comparisonRun));
+  const temporalProjections = $derived(projectMicrobialHistories(run, evaluationBundle.comparisonRun));
   const helpTopic = $derived(createLongShadowHelpTopic(evaluationBundle.evaluation));
   const pageTitle = $derived(
     route.kind === 'catalogue'
@@ -250,10 +266,10 @@
         <EventHistory events={visibleEvents} onselect={setTick} />
       </section>
 
-      <LevelsThroughTime projection={temporalProjection} styles={seriesStyles} value={tick} onselect={setTick} />
+      <HistoryExplorer projections={temporalProjections} styles={seriesStyles} value={tick} onselect={setTick} />
 
       <section class="feedback-grid">
-        <ExperimentFeedback evaluation={evaluationBundle.evaluation} />
+        <ExperimentFeedback evaluation={evaluationBundle.evaluation} onselect={setTick} />
         <HelpPanel topic={helpTopic} />
       </section>
 

@@ -19,16 +19,16 @@ export function createLongShadowHelpTopic(evaluation: PairedBiomassEvaluation): 
   const recoveryText = metrics.recoveryTick === null ? 'did not return close enough to the comparison before the stored run ended' : `returned close to the comparison by day ${metrics.recoveryTick}`;
   return {
     id: 'help/biology/long-shadow-comparison',
-    version: '0.1.0',
+    version: '0.2.0',
     title: 'How to read the long-shadow result',
     intro: 'Read the lenses in order to build from the intuitive idea to the biological and technical details. All three explain the same stored result.',
     lenses: {
       curious: lens('curious', 'Start with the question, not the metric', 'No biology or computer-science knowledge is assumed here.', [
-        'We run the same tiny world twice. One version receives a long period of weak light; the other does not. Everything else we can currently hold fixed stays the same.',
+        'We save one verified day in the tiny world, then let two futures continue from it. One future receives a long period of weak light; the control does not. Everything else we can currently hold fixed stays the same.',
         `The weakest point retained ${metrics.lowestRetentionPercent}% of the total living material seen in the no-shadow version. It ${recoveryText}.`,
         'This does not tell us what real alien life would do. It tells us whether the rules in this particular toy world produce a believable chain of strain and recovery.'
       ], [
-        { term: 'Comparison run', meaning: 'The same setup without the one change we want to understand.' },
+        { term: 'Control future', meaning: 'A future from the same saved day without the one change we want to understand.' },
         { term: 'Recovery', meaning: 'Staying close to the comparison for long enough that a one-day bounce does not count.' }
       ], evaluation),
       biology: lens('biology', 'Interpret the aggregate ecology', 'Claim level: plausibly close, conceptually defensible causal ecology at population-aggregate resolution - not calibrated rates, species dynamics or an empirical reconstruction.', [
@@ -40,18 +40,18 @@ export function createLongShadowHelpTopic(evaluation: PairedBiomassEvaluation): 
         { term: 'Perturbation', meaning: 'A declared change to an input; here, reduced incident light.' },
         { term: 'Buffer', meaning: 'Stored material or a process that reduces the immediate effect of lost input.' }
       ], evaluation),
-      engine: lens('engine', 'Inspect how the comparison is made', 'Claim level: deterministic prototype mechanics and transparent projections - not a completed checkpoint/fork engine, full conservation system or calibrated Fitness Vector.', [
-        'The app performs two full deterministic reruns with the same master seed, scenario and scripted provider. The only declared config difference moves the long-shadow interval beyond the run in the comparison.',
+      engine: lens('engine', 'Inspect how the comparison is made', 'Claim level: deterministic checkpoint mechanics and transparent projections - not a full conservation system, calibrated Fitness Vector or claim of real-world prediction.', [
+        'The app replays the ordinary history to a content-hashed checkpoint immediately before the shadow, then resumes two futures from that exact stored state. The shadow future reduces usable light; the control continues seasonal light.',
         `Recovery is an authored projection: at least ${evaluation.comparison.recoveryThresholdPercent}% of same-time control biomass for ${evaluation.comparison.recoverySustainDays} consecutive days. The changed run is compared with the control at each day, never with its own pre-shock snapshot.`,
-        'Repeatability, finite values and non-negative stored stocks are checked now. Complete conservation, accounting debt, content-addressed checkpoint forks, order-independent counter draws and the wider Fitness Vector remain unimplemented and are reported as such.'
+        'Checkpoint integrity, shared-prefix identity, branch isolation, exact repeatability, finite values, non-negative stored stocks and unsupported runaway growth are checked now. Complete conservation, accounting debt, order-independent counter draws and the wider Fitness Vector remain unimplemented and are reported as such.'
       ], [
-        { term: 'Same-time control', meaning: 'A comparison snapshot from the same simulated day, not a snapshot from before the change.' },
+        { term: 'Checkpoint', meaning: 'A content-verified saved day from which both futures continue.' }, { term: 'Same-time control', meaning: 'A comparison snapshot from the same simulated day, not a snapshot from before the change.' },
         { term: 'Fitness Vector', meaning: 'The planned set of separate validity, persistence, resilience, sensitivity and cost measures; not one magic score.' },
         { term: 'Projection', meaning: 'A read-only interpretation calculated from stored run facts.' }
       ], evaluation)
     },
     diagram: {
-      kind: 'paired-rerun', label: 'Schematic comparison method', shared: 'Same seed, starting state, rules and provider',
+      kind: 'paired-checkpoint', label: 'Schematic checkpoint comparison', shared: 'One verified checkpoint: identical stored past, state, seed, rules and provider',
       changed: `Long shadow: light reduced on days ${evaluation.comparison.startTick}-${evaluation.comparison.endTick}`, comparison: 'No long shadow: seasonal light continues'
     },
     conceptDemo: {

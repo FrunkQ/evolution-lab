@@ -1,3 +1,4 @@
+export * from './canonical';
 export * from './describe';
 export * from './environment';
 export * from './rng';

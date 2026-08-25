@@ -24,6 +24,7 @@ export interface TemporalMarker {
 
 export interface TemporalProjection {
   id: string;
+  selectorLabel: string;
   title: string;
   timeLabel: string;
   quantityLabel: string;
@@ -67,7 +68,7 @@ export function projectMicrobialBiomassHistory(
   const comparisonSeries: TemporalSeries[] = noShadowComparison ? [{
     id: 'comparison/no-long-shadow',
     label: 'Same setup, no long shadow',
-    description: 'Total active biomass from the paired same-seed rerun with the scripted long shadow removed.',
+    description: 'Total active biomass in the control future resumed from the same verified checkpoint.',
     unit: 'experimental biomass units',
     samples: noShadowComparison.snapshots.map((snapshot) => ({
       tick: snapshot.tick,
@@ -79,6 +80,7 @@ export function projectMicrobialBiomassHistory(
 
   return {
     id: 'biology/microbial-biomass-history',
+    selectorLabel: 'Living mass',
     title: noShadowComparison ? 'Life levels with and without the long shadow' : 'Levels through time',
     timeLabel: 'Simulation day',
     quantityLabel: 'Aggregate biomass',
@@ -87,8 +89,8 @@ export function projectMicrobialBiomassHistory(
       ? 'Aggregate biomass history with a same-seed no-shadow comparison. Use left and right arrow keys to inspect another day.'
       : 'Aggregate biomass history. Use left and right arrow keys to inspect another day.',
     explanation: noShadowComparison ? [
-      'The solid total and lineage lines are copied from the ordinary deterministic run. The pale dashed comparison is a second full run with the same seed and inputs except that the scripted long shadow is removed.',
-      'The comparison is not a checkpoint fork and does not prove ecological accuracy. It asks whether this prototype responds to one declared change in a coherent, repeatable way. Event markers come only from the ordinary recorded run.',
+      'The observed total and lineage lines belong to the long-shadow future. The blue dashed control resumes from the same verified checkpoint, with only the declared shadow window removed.',
+      'This checkpoint comparison does not prove ecological accuracy. It asks whether this prototype responds to one declared change in a coherent, repeatable way. Markers come only from stored events and the recorded fork.',
       'Relative view scales every visible series to its own observed peak, so it compares shapes rather than absolute amounts. Visibility and inspection never rerun or alter either history.'
     ] : [
       'These lines are aggregate biomass values copied from the deterministic run daily snapshots. Total sums populations marked active on that day; event markers are existing recorded simulation events.',
@@ -96,15 +98,28 @@ export function projectMicrobialBiomassHistory(
     ],
     relativeMode: 'series-maximum',
     series: [total, ...comparisonSeries, ...lineageSeries],
-    markers: run.events.map((event) => ({
-      id: event.id,
-      tick: event.tick,
-      label: event.title,
-      kind: event.kind
-    }))
+    markers: projectRunMarkers(run)
   };
 }
 
+export function projectRunMarkers(run: SimulationRun): TemporalMarker[] {
+  const eventMarkers = run.events.map((event) => ({
+    id: event.id,
+    tick: event.tick,
+    label: event.title,
+    kind: event.kind
+  }));
+  if (!run.fork) return eventMarkers;
+  return [
+    ...eventMarkers,
+    {
+      id: 'fork/' + run.fork.perturbationHash,
+      tick: run.fork.appliedAt,
+      label: run.fork.role === 'shadow' ? 'Control and shadow futures separate' : 'Checkpoint future begins',
+      kind: 'fork'
+    }
+  ];
+}
 export function selectTemporalSeries(
   projection: TemporalProjection,
   visibleSeriesIds: ReadonlySet<string>

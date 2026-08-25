@@ -45,21 +45,21 @@ const modes: InstalledMode[] = [
     summary:
       'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.3.1',
+      version: '0.4.0',
       lastUpdated: '2026-08-25',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'Timeline-local causal/material inspection and cumulative learning lenses'
+      currentFocus: 'Checkpoint control, resilience measures and traceable cause-and-effect'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,
       providerIdentity: 'scripted-microbial-film@0.1.0',
       domainContentIdentity: 'evolution-lab/base-microbial@0.1.0',
-      presentationIdentity: 'evolution-lab/exobiology-prototype@0.2.1'
+      presentationIdentity: 'evolution-lab/exobiology-prototype@0.3.0'
     },
     intendedInputs: ['Master seed', 'Scripted daily light and resource inflows'],
     intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events', 'Paired long-shadow feedback'],
-    nextStep: 'Promote the flask to a hashed reference and replace paired full reruns with a true checkpoint fork.'
+    nextStep: 'Add a unit-aware conservation ledger, explicit bound-adjustment accounting and a multi-seed release suite.'
   },
   {
     id: 'firstlife',

@@ -100,6 +100,38 @@ export interface RunManifest {
   schemaVersion: string;
   scenarioId: string;
   environmentProvider: string;
+  configHash: string;
+}
+
+export interface SimulationForkManifest {
+  parentCheckpointHash: string;
+  role: 'control' | 'shadow';
+  perturbationId: string;
+  perturbationVersion: string;
+  perturbationHash: string;
+  appliedAt: number;
+  description: string;
+}
+
+export interface SimulationCheckpoint {
+  format: 'evolution-checkpoint/0.1';
+  tick: number;
+  hash: string;
+  seed: string;
+  manifest: RunManifest;
+  config: SimulationConfig;
+  lineages: LineageDefinition[];
+  snapshots: WorldSnapshot[];
+  events: SimulationEvent[];
+}
+
+export interface SimulationPerturbation {
+  id: string;
+  version: string;
+  role: SimulationForkManifest['role'];
+  appliedAt: number;
+  description: string;
+  config: SimulationConfig;
 }
 
 export interface SimulationRun {
@@ -109,4 +141,5 @@ export interface SimulationRun {
   lineages: LineageDefinition[];
   snapshots: WorldSnapshot[];
   events: SimulationEvent[];
+  fork?: SimulationForkManifest;
 }

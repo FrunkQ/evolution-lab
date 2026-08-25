@@ -65,23 +65,28 @@ Concept demos do not call the engine, change a seed, modify experiment state or 
 
 ## Current Exobiology example
 
-The first evaluation view compares two complete deterministic runs with the same seed and authored configuration. The comparison run moves the long shadow beyond the experiment; nothing else is intentionally changed.
+The reference history is saved immediately before the long shadow as a content-hashed checkpoint. Control and shadow futures resume from that identical stored past and exact rounded state. The only declared difference is whether usable light receives the scripted reduction.
 
 ```mermaid
 flowchart LR
-    M[Same seed and mode manifest] --> O[Observed run<br/>long shadow occurs]
-    M --> C[Comparison run<br/>long shadow omitted]
-    O --> P[Same-time biomass projection]
-    C --> P
-    P --> Q[Survival · recovery<br/>change · fragility]
+    P[One verified checkpoint<br/>same past, state, seed, rules and provider] --> O[Shadow future<br/>light reduced]
+    P --> C[Control future<br/>seasonal light continues]
+    O --> V[Same-time stored views]
+    C --> V
+    V --> B[Living mass]
+    V --> F[New living mass]
+    V --> S[Community strain]
+    V --> R[Resources]
+    V --> Q[Survival · recovery · loss<br/>instability · retained functions]
 ```
 
-The current view can honestly show aggregate active biomass and which predefined lineages remain. It checks finite state, non-negative stocks and exact repeatability. It cannot yet prove full matter conservation, identify growth/accounting debt, restore a discarded checkpoint, or establish scientific calibration. “Recovery” currently means returning to a declared fraction of the continuing same-time comparison for a declared duration; it does not mean that every lineage or ecological relationship returned to its former state.
+The current view can honestly show aggregate active biomass, positive population productivity, biomass-weighted stress, stored resource values and which predefined authored capabilities remain represented. It checks the checkpoint hash and prefix, declared branch isolation, exact resume/repeatability, finite state, non-negative stocks and one unsupported-runaway pattern. It still cannot prove complete matter/energy conservation, account for material introduced by prototype floors and caps, or establish scientific calibration. “Recovery” means returning to a declared fraction of the continuing same-time control for a declared duration; it does not mean that every lineage or ecological relationship returned to its former state.
 
+The cause-and-effect trail is generated from stored facts rather than hand-written per result: fork, first resource difference, first population-productivity difference, deepest bottleneck and outcome. Selecting a step moves the shared inspection day; it does not mutate either future.
 ## Ownership
 
 - Framework-neutral help content and concept-demo projections: `src/lib/help`.
-- Framework-neutral paired-run evaluation: `src/lib/analysis`.
+- Framework-neutral checkpoint control/shadow evaluation: `src/lib/analysis`.
 - Scene-setting projection: `src/lib/projections/scene.ts`.
 - Help and feedback rendering: `src/lib/components/HelpPanel.svelte` and `ExperimentFeedback.svelte`.
 - Lineage vocabulary control: `src/lib/components/LineageInspector.svelte`.
