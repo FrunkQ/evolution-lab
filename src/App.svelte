@@ -16,10 +16,11 @@
   import ReleaseIdentity from './lib/components/ReleaseIdentity.svelte';
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
-  import { createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily } from './lib/analysis';
+  import { benchmarkMicrobialReferenceDevice, createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily, MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY } from './lib/analysis';
   import { DEFAULT_CONFIG } from './lib/core';
   import type { SimulationConfig, TreeLens } from './lib/core';
   import {
+    DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE,
     EXOBIOLOGY_PROVIDER_REQUIREMENTS,
     compileProviderFixture,
     createExobiologyProviderDraft,
@@ -48,6 +49,7 @@
 
   const route = resolveRoute(window.location.pathname);
   const activeMode = route.kind === 'mode' ? route.mode : null;
+  const referenceConfig = exobiologyFixtureToSimulationConfig(DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE, DEFAULT_CONFIG);
   const seriesStyles: TemporalSeriesStyle[] = [
     { seriesId: 'total-active-biomass', color: RESERVED_RUN_COLORS.observed, areaOpacity: 1, symbol: '━━' },
     { seriesId: 'comparison/no-long-shadow', color: RESERVED_RUN_COLORS.control, dashPattern: '5 4', symbol: '┈' },
@@ -71,11 +73,11 @@
 
   let labArea = $state<LabArea>('simulation');
   let seed = $state('fish-and-strawberries');
-  let activeConfig = $state<SimulationConfig>(DEFAULT_CONFIG);
+  let activeConfig = $state<SimulationConfig>(referenceConfig);
   let inputDraft = $state<ProviderFixtureDraft>(createExobiologyProviderDraft());
-  let activeInputHash = $state<string | undefined>();
-  let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries', DEFAULT_CONFIG));
-  let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries', DEFAULT_CONFIG));
+  let activeInputHash = $state<string | undefined>(DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.hash);
+  let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries', referenceConfig));
+  let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries', referenceConfig));
   const run = $derived(evaluationBundle.run);
   let tick = $state(176);
   let selectedId = $state('light-weavers');
@@ -149,8 +151,8 @@
   function runExperiment(experiment: EvolutionExperiment, selectedTick = 176) {
     stopPlayback();
     seed = experiment.masterSeed;
-    activeConfig = DEFAULT_CONFIG;
-    activeInputHash = undefined;
+    activeConfig = referenceConfig;
+    activeInputHash = DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.hash;
     inputDraft = createExobiologyProviderDraft();
     evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed, activeConfig);
     responseFamily = createMicrobialShadowResponseFamily(experiment.masterSeed, activeConfig);
@@ -198,6 +200,15 @@
     selectedId = 'light-weavers';
     labArea = 'simulation';
   }
+  async function measureReferenceDevicePerformance() {
+    return benchmarkMicrobialReferenceDevice(
+      () => performance.now(),
+      3,
+      navigator.userAgent || 'Browser runtime not reported',
+      'performance.now()'
+    );
+  }
+
   function setTick(nextTick: number) {
     tick = Math.max(0, Math.min(DEFAULT_CONFIG.duration, Math.round(nextTick)));
   }
@@ -339,7 +350,7 @@
     {:else if labArea === 'rules'}
       <RuleWorkshop pack={workingPack} onchange={(pack) => (workingPack = pack)} onexport={exportRulePack} />
     {:else}
-      <ExperimentLibrary experiments={EXPERIMENTS} onrun={runExperiment} onopenrules={() => (labArea = 'rules')} />
+      <ExperimentLibrary experiments={EXPERIMENTS} qualifications={[MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY]} onmeasure={measureReferenceDevicePerformance} onrun={runExperiment} onopenrules={() => (labArea = 'rules')} />
     {/if}
   {/if}
 

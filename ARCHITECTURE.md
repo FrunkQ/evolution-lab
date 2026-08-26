@@ -20,6 +20,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Add or change a temporal chart | `CTR-TEMPORAL-VIEW`, `DEC-019` | `src/lib/projections/temporal.ts`, its tests, then `LevelsThroughTime.svelte` |
 | Add or change a rule | `INV-RULEDATA`, `CTR-RULEPACK`, `EXT-*` | `src/lib/rules/`, then its tests and workshop components |
 | Add or promote an experiment | `INV-EXPERIMENT`, `CTR-EXPERIMENT` | `src/lib/experiments/`; reference status requires checkpoint hashes |
+| Add qualification or performance checks | `INV-DET`, `INV-EXPERIMENT`, `INV-PERFORMANCE`, `CTR-QUALIFICATION`, `CTR-PERFORMANCE`, `DEC-032`, `DEC-033` | `src/lib/experiments/` contracts first, then the domain adapter in `src/lib/analysis/`; elapsed timing remains non-canonical |
 | Add a derived state/epoch marker | `PRIM-MARKER`, `CTR-MARKER`, `TIME-*` | authored predicate, ordinary facts, history projection, then vocabulary |
 | Add a lineage image/model | `INV-ARTIFACT`, `CTR-ARTIFACT` | future artifact package; never place renderers in the core |
 | Validate or evolve provider inputs/SSE datasets | `CTR-ENV`, `CTR-PROVIDER-REQUIREMENT`, `CTR-RUN`, `DEC-016`, `DEC-030` | `docs/ENGINE_MAP.md`, `src/lib/contracts/` and fixture tests |
@@ -97,6 +98,7 @@ These constraints are more stable than any implementation.
 | `INV-ARTIFACT` | Visual and structural artifacts are deterministic derived products with source provenance; they are not canonical biological state. |
 | `INV-PRESENTATION` | Routes, chart visibility, hover/focus, viewport and presentation vocabulary cannot alter simulation state, event order or random draws. |
 | `INV-LEGIBILITY` | User-facing evaluation begins with ordinary questions and inspectable reasons. Curious, Biology and Engine help lenses share the same facts and limitations, state their claim level, and never promote prototype agreement into scientific proof or exact prediction. |
+| `INV-PERFORMANCE` | Canonical outcomes and qualification hashes may depend on deterministic workload counts and authored budgets, never elapsed time, worker scheduling, UI inspection or device identity. Device timings are local observations with explicit scope. |
 | `INV-MARKER` | Named milestones are authorable predicates over ordinary state. A marker observes/materialises state; it never creates special-case physics or biology merely because it has a famous label. |
 
 ## 4. Domain primitives
@@ -149,9 +151,9 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
 | `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types; biomass, positive-productivity, weighted-stress and resource histories; checkpoint-control overlays; reserved run palette; visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented checkpoint-feedback slice |
 | `MOD-EVALUATION` | `src/lib/evaluation` | domain-neutral typed evaluation profiles, threshold validation, universal/profile gate execution and evaluation-family contracts | plain TypeScript/data; no Svelte, browser or domain imports | implemented first generic slice |
-| `MOD-ANALYSIS` | `src/lib/analysis` | microbial observations, paired metrics/causal steps and the severity-by-duration shadow-family adapter | read-only over aligned `SimulationRun` values; consumes `MOD-EVALUATION`; no Svelte/browser state | implemented checkpoint response-family slice |
+| `MOD-ANALYSIS` | `src/lib/analysis` | microbial observations, paired metrics/causal steps, severity-by-duration family, reference qualification assembly and workload/benchmark adapters | read-only over `SimulationRun` values; consumes evaluation/experiment contracts; no Svelte state and no timing in run identity | implemented qualification slice |
 | `MOD-HELP` | `src/lib/help` | cumulative Curious/Biology/Engine teaching content and isolated concept-demo data | consumes analysis facts; cannot import or mutate app/runtime state | implemented first teaching slice |
-| `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, canonical manifest hashes, expected checkpoint hashes and learning metadata | depends on contracts, not app state | microbial reference experiment implemented |
+| `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, manifest/checkpoint hashes, domain-neutral qualification reports, workload budgets and device-timing summaries | depends on contracts, not app state; device timing is never canonical | pinned-input microbial qualification implemented |
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
 | `MOD-RULE-UI` | `RuleWorkshop.svelte`, `RuleEditor.svelte` | scalable rulepack authoring and validation surface | consumes rule contracts by props/callbacks | prototype |
 | `MOD-LAB` | `src/App.svelte` | experimental host, controls and composition | may use core and reusable UI | prototype |
@@ -349,8 +351,22 @@ The runtime receives only a validated immutable compiled pack. Draft state, sele
 
 ### `CTR-EXPERIMENT` Reproducible experiment
 
-An experiment records stable identity/version/status, questions, master seed, provider and pack versions, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires a canonical manifest hash plus an expected content hash for every declared checkpoint and promotes the experiment to a regression fixture. Silent content changes invalidate the manifest hash. Retired experiments remain readable.
+An experiment records stable identity/version/status, questions, master seed, provider and pack versions, the exact provider-fixture identity, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires a pinned provider input, a canonical manifest hash and an expected content hash for every declared checkpoint, promoting the experiment to a regression fixture. Silent content changes invalidate the manifest hash. Retired experiments remain readable.
 
+### `CTR-QUALIFICATION` End-to-end reference qualification
+
+A qualification report is immutable, deterministic project evidence binding one reference experiment to its manifest, named seeds, content-hashed artifacts and explicit pass/fail checks. The implemented microbial report verifies the exact provider fixture, complete replay, promoted checkpoints, checkpoint-paired futures, all available hard gates, the nine-case response family, a declared-input response, a five-seed replay suite, the structural browser budget and causal-history coverage. Any failed check fails the report; evidence remains visible.
+
+The report qualifies framework plumbing and declared prototype behaviour, not scientific calibration. Unavailable matter/energy and bound-adjustment gates stay listed as model limitations rather than being converted into passes. `npm run qualify` is the focused release command. The Experiment Library consumes only a pinned lightweight summary whose hash and counts are checked against the executable report.
+
+### `CTR-PERFORMANCE` Deterministic workload and local device timing
+
+Performance feedback has two separate records:
+
+1. A deterministic `WorkloadProfile` counts stored snapshots, processed/active node-ticks, peak nodes, flow/event records and serialized-history characters. A versioned `WorkloadBudget` sets authored release limits. These counts and the budget hash may enter qualification.
+2. An opt-in `DevicePerformanceObservation` measures median elapsed time for the reference history and nine-case response family on the current browser. Timing never enters a run, checkpoint, qualification hash or seeded result. It carries the versioned benchmark-policy hash, engine version, exact workload/budget, warm-up/sample policy, timing source and local runtime label so observations remain interpretable; the UI neither transmits nor persists it.
+
+The first browser budget is a guardrail, not proof that 500 populations run acceptably. It uses the declared ordinary-world ceiling and storage/work limits to catch uncontrolled growth. The current engine has four authored guilds, so it explicitly withholds a maximum-population estimate: a defensible ceiling requires a variable-node synthetic workload and observations across declared modern-device tiers. A slow local result should cause later iterations to reduce resolved nodes/time, retain less detail or move work off the interaction path; it must not change canonical history.
 ### `CTR-MARKER` Authorable derived state and epoch marker
 
 A marker definition is a generic rulepack component. It names a predicate over calculated facts, optional minimum duration, retention thresholds/loss duration, significance scoring, emitted derived facts and three-layer vocabulary. Its history projection may emit approaching/entered/leaving/left transitions with causal evidence. Optional hysteresis prevents threshold noise from flickering state.
@@ -414,7 +430,7 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-002` The critical inspection action is “Why?”: cause, constraint, enabling capability, competitors, effects and subsequent planetary changes.
 
-`UI-003` The Rule Workshop and Experiment Library are permanent reusable product surfaces. They must remain navigable with hundreds of rules/experiments through search, filters, paging/virtualisation and dependency views.
+`UI-003` The Rule Workshop and Experiment Library are permanent reusable product surfaces. They must remain navigable with hundreds of rules/experiments through search, filters, paging/virtualisation and dependency views. A reference card shows its pinned input and qualification summary; device timing is an explicit local action and cannot mutate the active run.
 
 `UI-004` Levels Through Time is a reusable native-SVG component over `CTR-TEMPORAL-VIEW`. A local History Explorer selects one compatible projection above it. The renderer supports labelled visibility controls, reserved run colours plus non-colour line/symbol distinctions, pointer and keyboard time inspection, real event/fork markers and an explicit explanation of present non-claims.
 
@@ -447,6 +463,8 @@ Exit criteria:
 - `/`, `/exobiology`, `/firstlife` and `/galaxy` resolve in one build without code forks;
 - the live microbial run exposes its stored aggregate biomass history through a framework-neutral projection and reusable accessible component;
 - scaffold modes visibly distinguish intended contracts from implemented simulation.
+- the promoted microbial experiment starts from its content-hashed provider fixture and passes `npm run qualify`;
+- deterministic workload counts stay within an authored browser budget while device timing remains optional and non-canonical.
 
 ### `MILESTONE-1` Microbial flask — current prototype target
 
@@ -493,6 +511,9 @@ Parameterize information polymer, structural backbone, solvent, compartments, el
 
 `PERF-001` Browser feasibility depends chiefly on resolution: active nodes, habitats, sparse edges, candidate innovations and temporal checkpoints—not nominal floating-point precision.
 
+The implemented reference profiler separates deterministic structural cost from device speed. Release qualification currently records 361 snapshots, four peak processed populations, 1,444 processed population-days, 2,792 stored flows, seven events and 519,076 serialized JSON characters; all six v0.1 structural limits pass. These values are regression evidence for this experiment, not a universal device-capacity claim.
+
+An opt-in browser benchmark measures the reference history and nine-case response family with three median samples. Its quick/comfortable/slow labels describe only the measuring device. Population ceilings remain withheld until a variable-node workload makes scaling measurable rather than extrapolated from four hard-coded guilds.
 Initial design target per world:
 
 - tens of habitat patches;
@@ -550,6 +571,8 @@ Initial design target per world:
 | `DEC-029` | Treat severity-by-duration futures from one parent checkpoint as an evaluation family of hashed cases; the 30%-light, 37-day case remains the reference graph and the map is a read-only projection. | accepted |
 | `DEC-030` | Let domain packs declare typed, unit-aware provider inputs from which the Lab can generate validated hashed fixtures and SSE can implement an adapter. Providers own physical backstops; Evolution-owned capabilities consume those fields and return flux/signature responses. | accepted; first scalar/curve profile and fixture compiler implemented |
 | `DEC-031` | Generate one reusable Physical Inputs UI from the provider profile; load/download JSON fixtures and inject only explicitly mapped values while pinning the immutable fixture hash into the run. Solvent/medium identity is declared rather than assuming water. | accepted; Exobiology slice implemented |
+| `DEC-032` | Promote a reference experiment only when its exact provider fixture is pinned, then compile one deterministic qualification report across replay, checkpoints, forks, gates, response coverage, named seeds, workload and causal evidence. | accepted; microbial report implemented |
+| `DEC-033` | Separate deterministic workload budgets from opt-in device elapsed-time observations. Timing cannot alter or qualify seeded outcomes, and maximum-population estimates remain unavailable until measured against a variable-node workload on declared device tiers. | accepted; first profiler and benchmark seam implemented |
 
 ## 16. Open questions
 
@@ -568,6 +591,7 @@ Initial design target per world:
 | `OPEN-011` | Signing, trust, licensing and asset limits for shared modpacks? | before public sharing |
 | `OPEN-012` | Minimal universal predicate, persistence and significance schema for authored state/epoch markers? | first planet harness |
 | `OPEN-013` | Structured records, Markdown notebooks or both for experiment observations? | experiment comparison UI |
+| `OPEN-014` | Which modern-device tiers, repeatable benchmark corpus and variable-node synthetic workloads support defensible population-capacity ceilings? | before milestone 3/Web Workers |
 
 ## 17. Change protocol
 

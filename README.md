@@ -4,7 +4,7 @@ A browser-first laboratory for deterministic, explainable histories of evolving 
 
 > Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-That is the target architecture. The current `v0.7` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork and a nine-case response family around one scripted light change. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
+That is the target architecture. The current `v0.8` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork and a nine-case response family around one scripted light change. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
 
 The Lab is for learning, exploration and challenge. Its aim is to be plausibly close to the relevant scientific thinking at the level it actually models, while exposing assumptions and omissions clearly enough to invite useful criticism. It is not evidence, prediction, calibration or scientific proof.
 
@@ -23,9 +23,13 @@ The Exobiology workspace has four permanent areas:
 - **Live experiment** — explore the current seeded microbial history.
 - **Physical Inputs** — create, validate, import/export and inject a content-hashed provider dataset from a reusable typed profile.
 - **Rule Workshop** — author and validate scalable declarative packs independently of the runtime and SSE.
-- **Experiment Library** — retain reproducible questions, checkpoints and lessons instead of discarding prototypes.
+- **Experiment Library** — retain reproducible questions, pinned inputs, checkpoint hashes, qualification evidence and lessons instead of discarding prototypes.
 
 The Physical Inputs harness is generated from the Exobiology provider-requirement profile rather than a hand-built form. It accepts scalar and spectral-curve data with units, bounds and provenance; can load or download JSON fixtures; and pins an injected fixture hash into the run manifest. Only controls explicitly labelled **Drives this experiment** affect the current aggregate equations. Temperature, pressure, gravity, radiation, chemical energy, liquid-medium availability, solvent activity and other recorded facts remain visible but do not falsely claim live mechanisms. The same harness can render another mode's profile, while a future SSE/System Lab adapter must satisfy this contract before it can stream or resolve richer data.
+
+The promoted microbial reference now starts from the exact default Physical Inputs fixture rather than hidden fallback values. A content-hashed qualification report checks the input identity, exact replay, four checkpoint hashes, paired-future integrity, every available hard gate, all nine response cases, a deliberately changed input, five named seeds, structural workload and causal-history coverage. The Experiment Library shows its pinned 10/10 summary. This proves that the prototype framework is wired reproducibly; it does not prove that its biology is calibrated.
+
+Performance is split honestly. Release qualification records deterministic structural work—361 snapshots, four peak processed populations, 1,444 population-days and about 0.52M serialized characters—against six authored browser limits. **Measure this device** optionally times the reference history and nine-case map locally, recording the benchmark version, exact workload and browser context only in the page. Those milliseconds never enter seeded results or hashes and are not sent or persisted. The app does not yet estimate a maximum population count because the present engine processes four authored guilds; a defensible ceiling needs a variable-node benchmark across declared device tiers.
 
 Its reusable **Levels Through Time** renderer now has four locally selected views over stored daily facts: living mass, positive production of new living mass, biomass-weighted community strain and resource levels. Control and long-shadow futures resume from one verified checkpoint immediately before the light change. Recorded events and the fork are markers; the chart cursor shares the selected timeline day. Observed/shadow and control runs have reserved white and blue identities that lineage colours cannot borrow, with dash and symbol cues retained. View selection, visibility, hover and valid relative scaling are presentation-only and cannot alter either future.
 
@@ -44,6 +48,7 @@ Quality checks:
 
 ```sh
 npm test
+npm run qualify
 npm run check
 npm run build
 ```
@@ -61,12 +66,12 @@ npm run build
 - `src/lib/contracts` — versioned external compatibility contracts and pinned generated fixtures.
 - `src/lib/core` — deterministic framework-neutral simulation code.
 - `src/lib/evaluation` — domain-neutral evaluation-profile compilation, thresholds, gate execution and family contracts.
-- `src/lib/analysis` — microbial observations, paired metrics/causal steps and the severity-by-duration response-family adapter.
+- `src/lib/analysis` — microbial observations, paired metrics/causal steps, response-family, qualification and performance adapters.
 - `src/lib/help` — framework-neutral cumulative help content and isolated concept-demo projections.
 - `src/lib/modes` — single typed authority for route, lifecycle and per-mode release metadata.
 - `src/lib/projections` — framework-neutral temporal view contracts and history projections.
 - `src/lib/rules` — declarative rule types, validation and deterministic compilation/indexing.
-- `src/lib/experiments` — versioned experiments and accumulated learning.
+- `src/lib/experiments` — versioned experiments, qualification reports, workload budgets and accumulated learning.
 - `src/lib/components` — reusable Svelte components intended for both the Lab and SSE.
 - `src/App.svelte` — standalone experimental host.
 
@@ -77,6 +82,9 @@ The project is separate from Star System Explorer. No SSE code or stores are imp
 Rates and quantities currently use bounded experimental units and are not scientifically calibrated. The live microbial simulation still consumes scalar scripted light; its validated retained-light fraction is only a small precursor to a schema-driven physical-input harness. The SSE spectral fixture validates the future data seam but is not yet runtime wiring. Lineage colours remain authored prototype presentation data, not spectral adaptations; future pigment traits must consume unit-aware provider spectra rather than colour names. The lineage definitions are predefined; the engine demonstrates activation under ecological conditions rather than open-ended mutation.
 
 The current comparison and every response-map case are real branches from one content-hashed checkpoint; the centre case verifies exact resume against the uninterrupted run. A versioned evaluation profile now owns the thresholds and gate declarations, while the microbial adapter supplies observations. Hard gates check checkpoint/prefix/branch integrity, finite and non-negative stored state, repeatability and one unsupported-growth pattern. Complete unit-aware matter/energy conservation and accounting for material introduced by prototype floors and caps are still unavailable, so the UI names those missing gates beside the result. “Recovered” remains a declared aggregate-biomass threshold, not proof that the pre-shadow ecological state or every lineage relationship was restored.
+
+
+The current workload budget is an early-warning guardrail, not a device-capacity certification. Local benchmark labels apply only to the browser that ran them. Population limits remain unknown until the engine can exercise a variable number of aggregate nodes under repeatable synthetic loads.
 
 ## Licence
 

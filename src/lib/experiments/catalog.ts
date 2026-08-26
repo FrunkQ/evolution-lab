@@ -1,5 +1,6 @@
 import type { EvolutionExperiment } from './types';
 import { MICROBIAL_SCENARIO_ID, MICROBIAL_SCENARIO_VERSION } from '../core/scenario';
+import { DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE } from '../contracts';
 import { validateExperimentCatalogue } from './validate';
 
 export const EXPERIMENTS: EvolutionExperiment[] = [
@@ -10,9 +11,16 @@ export const EXPERIMENTS: EvolutionExperiment[] = [
     summary:
       'Tests whether producers, recyclers and grazers can form a legible resource cycle and leave persistent environmental evidence.',
     status: 'reference',
-    manifestHash: 'experiment-manifest/v1-3c6e6118',
+    manifestHash: 'experiment-manifest/v1-9562f8b3',
     masterSeed: 'fish-and-strawberries',
     environmentProvider: 'scripted-microbial-film@0.3.0',
+    providerInput: {
+      profileId: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.profile.id,
+      profileVersion: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.profile.version,
+      fixtureId: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.id,
+      fixtureVersion: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.version,
+      fixtureHash: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.hash
+    },
     rulePackIds: ['evolution-lab/base-microbial@0.1.0'],
     tags: ['microbial', 'detritus', 'oxygenation', 'disturbance'],
     questions: [
@@ -26,10 +34,10 @@ export const EXPERIMENTS: EvolutionExperiment[] = [
       'Environmental memory belongs to every process, not only civilisations.'
     ],
     checkpoints: [
-      { tick: 24, expectedHash: 'evolution-checkpoint-v1-13d61746', note: 'Light harvesting becomes viable.' },
-      { tick: 126, expectedHash: 'evolution-checkpoint-v1-bd93e059', note: 'Direct grazing opens the first predator–prey cycle.' },
-      { tick: 231, expectedHash: 'evolution-checkpoint-v1-9fb3e827', note: 'Verified fork boundary immediately before the long shadow.' },
-      { tick: 269, expectedHash: 'evolution-checkpoint-v1-59bc9e23', note: 'Recovery begins after light returns.' }
+      { tick: 24, expectedHash: 'evolution-checkpoint-v1-7280724c', note: 'Light harvesting becomes viable.' },
+      { tick: 126, expectedHash: 'evolution-checkpoint-v1-7ff92261', note: 'Direct grazing opens the first predator–prey cycle.' },
+      { tick: 231, expectedHash: 'evolution-checkpoint-v1-766c875d', note: 'Verified fork boundary immediately before the long shadow.' },
+      { tick: 269, expectedHash: 'evolution-checkpoint-v1-570fda03', note: 'Recovery begins after light returns.' }
     ]
   }
 ];

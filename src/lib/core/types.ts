@@ -72,6 +72,12 @@ export interface WorldSnapshot {
   events: SimulationEvent[];
 }
 
+export interface ProviderInputReference {
+  profileId: string;
+  profileVersion: string;
+  fixtureHash: string;
+}
+
 export interface SimulationConfig {
   duration: number;
   nutrientPulseAt: number;
@@ -81,11 +87,7 @@ export interface SimulationConfig {
   meanUsableLight?: number;
   lightCycleAmplitude?: number;
   lightCycleDays?: number;
-  providerInput?: {
-    profileId: string;
-    profileVersion: string;
-    fixtureHash: string;
-  };
+  providerInput?: ProviderInputReference;
 }
 
 export interface EnvironmentFrame {
@@ -110,11 +112,7 @@ export interface RunManifest {
   scenarioId: string;
   environmentProvider: string;
   configHash: string;
-  providerInput?: {
-    profileId: string;
-    profileVersion: string;
-    fixtureHash: string;
-  };
+  providerInput?: ProviderInputReference;
 }
 
 export interface SimulationForkManifest {

@@ -15,10 +15,14 @@ export function validateExperiment(experiment: EvolutionExperiment): readonly st
     if (experiment.checkpoints.some((checkpoint) => !checkpoint.expectedHash)) {
       issues.push('Every reference checkpoint requires an expected content hash.');
     }
+    if (!experiment.providerInput) issues.push('Reference experiments require a pinned provider input.');
     if (!experiment.manifestHash) issues.push('Reference experiments require a manifest hash.');
     else if (computeExperimentManifestHash(experiment) !== experiment.manifestHash) {
       issues.push('Experiment manifest hash does not match its canonical content.');
     }
+  }
+  if (experiment.providerInput && Object.values(experiment.providerInput).some((value) => !value.trim())) {
+    issues.push('Provider input identity must be complete.');
   }
   return issues;
 }

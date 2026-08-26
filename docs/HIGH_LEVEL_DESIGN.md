@@ -133,6 +133,14 @@ The first implemented family asks a broader version of one experiment question: 
 
 Family trees, organism images and 3D forms are separate deterministic artifacts derived from lineage facts and an inherited morphology recipe. The same artifacts can be displayed by the Lab or SSE without making presentation assets part of the biological state. See `docs/RULEPACK_AND_LAB_ARCHITECTURE.md` for the detailed boundary.
 
+## Qualification and practical performance
+
+A plausible result is not useful if the machinery cannot be replayed or scaled. The first promoted experiment therefore carries its exact physical-input fixture, manifest and checkpoints into one executable qualification. That report checks the whole route from authored input through deterministic history, forked comparisons, evaluation coverage and causal explanation. It is a release proof for the framework path, not a claim that the microbial equations are scientifically validated.
+
+Performance has two kinds of evidence because combining them would make results misleading. Deterministic workload counts describe what the engine asked a device to do: retained samples, processed aggregate nodes over time, stored flows/events and history size. Versioned budgets can fail qualification when iterative work grows those quantities unexpectedly. Device timing describes how long the same fixed work took in one browser. It is opt-in, local and excluded from every canonical hash.
+
+The first profiler makes the tiny scale explicit: four authored guilds and 361 daily samples. It can detect regressions and provide a useful local history/response-family timing, but it cannot justify a 500-population ceiling. Population capacity becomes estimable only after a synthetic workload can vary node count, edge density, event density, retained resolution and worker strategy across agreed modern-device tiers. Until then the UI says the estimate is unavailable rather than converting one desktop timing into false precision.
+
 ## Browser feasibility
 
 The concept is practical in a browser at aggregate resolution. Cost grows primarily with the number of active populations, habitat patches, sparse edges, candidate innovations and resolved time windows—not with the age of the star system by itself.

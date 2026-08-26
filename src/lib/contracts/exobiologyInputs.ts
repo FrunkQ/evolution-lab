@@ -3,6 +3,7 @@ import type { SsePlanetDataset } from './ssePlanetDataset';
 import type { SimulationConfig } from '../core';
 import {
   PROVIDER_REQUIREMENT_SCHEMA,
+  compileProviderFixture,
   createProviderFixtureDraft,
   validateProviderFixture,
   type CompiledProviderFixture,
@@ -101,6 +102,11 @@ export const EXOBIOLOGY_PROVIDER_REQUIREMENTS: ProviderRequirementProfile = {
 export function createExobiologyProviderDraft() {
   return createProviderFixtureDraft(EXOBIOLOGY_PROVIDER_REQUIREMENTS, 'fixture/exobiology-lab-inputs');
 }
+
+export const DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE = compileProviderFixture(
+  EXOBIOLOGY_PROVIDER_REQUIREMENTS,
+  createExobiologyProviderDraft()
+);
 export function validateExobiologyProviderFixture(
   fixture: ProviderFixtureDraft,
   runDuration = 360

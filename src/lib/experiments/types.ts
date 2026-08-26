@@ -1,3 +1,5 @@
+import type { ProviderInputReference } from '../core';
+
 export type ExperimentStatus = 'draft' | 'reference' | 'retired';
 
 export interface ExperimentCheckpoint {
@@ -15,6 +17,10 @@ export interface EvolutionExperiment {
   manifestHash?: string;
   masterSeed: string;
   environmentProvider: string;
+  providerInput?: ProviderInputReference & {
+    fixtureId: string;
+    fixtureVersion: string;
+  };
   rulePackIds: string[];
   tags: string[];
   questions: string[];
