@@ -7,6 +7,7 @@ export interface WorkloadProfile {
   processedNodeTicks: number;
   activeNodeTicks: number;
   flowRecords: number;
+  accountingRecords: number;
   eventRecords: number;
   historyCharacters: number;
 }

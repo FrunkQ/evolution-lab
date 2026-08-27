@@ -1,4 +1,4 @@
-import { createSimulationCheckpoint, forkSimulation, simulate, validateSimulationCheckpoint, DEFAULT_CONFIG } from '../core';
+import { createSimulationCheckpoint, forkSimulation, simulate, validateAccountingFrames, validateSimulationCheckpoint, DEFAULT_CONFIG } from '../core';
 import type { ResourceKey, SimulationCheckpoint, SimulationConfig, SimulationRun, WorldSnapshot } from '../core';
 import { runEvaluationGates } from '../evaluation';
 import type { EvaluationGateResult } from '../evaluation';
@@ -41,7 +41,25 @@ export function biomassWeightedStress(snapshot: WorldSnapshot): number {
   const active = snapshot.populations.filter((p) => p.active), total = active.reduce((sum, p) => sum + p.biomass, 0);
   return total <= 0 ? 0 : active.reduce((sum, p) => sum + p.stress * p.biomass, 0) / total;
 }
-const runNumbers = (run: SimulationRun) => run.snapshots.flatMap((s) => [...Object.values(s.resources), ...Object.values(s.signatures), ...s.populations.flatMap((p) => [p.biomass, p.productivity, p.stress]), ...s.flows.map((f) => f.amount)]);
+const runNumbers = (run: SimulationRun) => run.snapshots.flatMap((s) => [
+  ...Object.values(s.resources),
+  ...Object.values(s.signatures),
+  ...s.populations.flatMap((p) => [p.biomass, p.productivity, p.stress]),
+  ...s.flows.map((f) => f.amount),
+  s.accounting.openingMinorUnits,
+  s.accounting.importedMinorUnits,
+  s.accounting.exportedMinorUnits,
+  s.accounting.closingMinorUnits,
+  s.accounting.residualMinorUnits,
+  s.accounting.transactionResidualMinorUnits,
+  s.accounting.adjustmentDebtMinorUnits,
+  ...s.accounting.transactions.flatMap((transaction) => [
+    transaction.boundaryDeltaMinorUnits,
+    transaction.residualMinorUnits,
+    transaction.adjustmentDebtMinorUnits,
+    ...transaction.postings.map((posting) => posting.deltaMinorUnits)
+  ])
+]);
 const hasNegativeStock = (run: SimulationRun) => run.snapshots.some((s) => Object.values(s.resources).some((v) => v < 0) || Object.values(s.signatures).some((v) => v < 0) || s.populations.some((p) => p.biomass < 0) || s.flows.some((f) => f.amount < 0));
 function hasRunaway(run: SimulationRun, start: number): boolean {
   const window = run.snapshots.filter((s) => s.tick >= start).map(totalActiveBiomass).slice(-RUNAWAY_WINDOW_DAYS);
@@ -136,6 +154,8 @@ export function evaluateCheckpointFork(checkpoint: SimulationCheckpoint, shadow:
   const branchIsolation = shadow.manifest.environmentProvider === control.manifest.environmentProvider &&
     differences.length === allowedDifferences.length && allowedDifferences.every((key) => differences.includes(key));
 
+  const shadowAccounting = validateAccountingFrames(shadow.snapshots.map(({ accounting }) => accounting));
+  const controlAccounting = validateAccountingFrames(control.snapshots.map(({ accounting }) => accounting));
   const gateReport = runEvaluationGates(MICROBIAL_SHADOW_PROFILE, [
     { gateId: 'checkpoint-integrity', passed: validateSimulationCheckpoint(checkpoint), evidence: checkpoint.hash },
     { gateId: 'fork-prefix', passed: forkIntegrity },
@@ -144,7 +164,17 @@ export function evaluateCheckpointFork(checkpoint: SimulationCheckpoint, shadow:
     { gateId: 'finite-state', passed: [...runNumbers(shadow), ...runNumbers(control)].every(Number.isFinite) },
     { gateId: 'non-negative-stocks', passed: !hasNegativeStock(shadow) && !hasNegativeStock(control) },
     { gateId: 'repeatability', passed: JSON.stringify(shadow) === JSON.stringify(repeat) },
-    { gateId: 'unsupported-growth', passed: !hasRunaway(shadow, start) && !hasRunaway(control, start) }
+    { gateId: 'unsupported-growth', passed: !hasRunaway(shadow, start) && !hasRunaway(control, start) },
+    {
+      gateId: 'matter-balance',
+      passed: shadowAccounting.balanced && controlAccounting.balanced,
+      evidence: `Maximum residual: ${Math.max(shadowAccounting.maximumResidualMinorUnits, controlAccounting.maximumResidualMinorUnits)} minor units; ledger structure: ${shadowAccounting.structuralIntegrity && controlAccounting.structuralIntegrity ? 'pass' : 'fail'}; interval continuity: ${shadowAccounting.continuity && controlAccounting.continuity ? 'pass' : 'fail'}.`
+    },
+    {
+      gateId: 'accounting-debt',
+      passed: shadowAccounting.debtFree && controlAccounting.debtFree,
+      evidence: `Total adjustment debt: ${shadowAccounting.totalAdjustmentDebtMinorUnits + controlAccounting.totalAdjustmentDebtMinorUnits} centi-units.`
+    }
   ]);
   const invalid = !gateReport.valid, survived = lowest.retention >= SURVIVAL_THRESHOLD, recovered = recoveryTick !== null;
   const status: PairedBiomassEvaluation['status'] = invalid ? 'invalid' : !survived ? 'collapsed' : recovered ? 'recovered' : 'survived';
@@ -168,7 +198,7 @@ export function evaluateCheckpointFork(checkpoint: SimulationCheckpoint, shadow:
     { id: 'outcome', tick: recoveryTick ?? final.tick, label: recovered ? 'Aggregate recovery is sustained' : 'Stored window ends without recovery', summary: recovered ? `At least ${round(RECOVERY_THRESHOLD * 100)}% of control for ${RECOVERY_SUSTAIN_DAYS} days.` : 'The sustained-recovery threshold is not reached.', evidence: `${retained.length} of ${controlFunctions.size} represented capabilities remain active.` }
   ];
   return {
-    id: 'biology/microbial-long-shadow-evaluation', version: '0.3.0',
+    id: 'biology/microbial-long-shadow-evaluation', version: '0.4.0',
     profile: { id: MICROBIAL_SHADOW_PROFILE.id, version: MICROBIAL_SHADOW_PROFILE.version, hash: MICROBIAL_SHADOW_PROFILE.hash },
     status, headline,
     summary: 'Control and long-shadow futures resume from one content-hashed checkpoint and are compared on the same simulated day.',
@@ -178,7 +208,7 @@ export function evaluateCheckpointFork(checkpoint: SimulationCheckpoint, shadow:
     questions, checks: gateReport.results, lineages, explanation,
     factIds: ['checkpoint/parent-hash', ...MICROBIAL_SHADOW_PROFILE.metricIds.map((id) => `metric/${id}`), ...MICROBIAL_SHADOW_PROFILE.gates.filter(({ availability }) => availability === 'implemented').map(({ id }) => `check/${id}`)],
     limitationIds: MICROBIAL_SHADOW_PROFILE.limitationIds.map((id) => `limit/${id}`),
-    limitations: ['Biomass and flux use experimental units; complete matter and energy conservation are not yet testable.', 'Prototype floors and caps are not yet accounting entries, so hidden adjustment debt remains unknown.', 'The four lineages and capabilities are predefined rather than produced by open-ended evolution.', 'The scripted provider removes light; it does not resolve planetary physics.']
+    limitations: ['Material closes only in declared model-mass centi-units; this is not calibrated SI chemistry.', 'Useful-energy conversion and dissipation are not yet a complete energy ledger.', 'The four lineages and capabilities are predefined rather than produced by open-ended evolution.', 'The scripted provider supplies explicit boundary inputs but does not prove System Lab physical conservation.']
   };
 }
 

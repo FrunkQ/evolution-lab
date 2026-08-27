@@ -3,7 +3,7 @@
 > **Audience:** coding agents and maintainers.  
 > **Authority:** this file is the project’s canonical architectural context.  
 > **Status vocabulary:** `planned`, `prototype`, `implemented`, `deferred`, `authored-only`.  
-> **Last structural revision:** 2026-08-25.
+> **Last structural revision:** 2026-08-27.
 
 ## 0. Agent retrieval map
 
@@ -12,6 +12,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Task | Read first | Then inspect |
 |---|---|---|
 | Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
+| Change material accounting | `INV-DET`, `CTR-FLUX-ACCOUNTING`, `DEC-034`, `DEC-035` | `src/lib/core/accounting.ts`, simulation transaction sites, then core and paired-evaluation tests |
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
 | Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-PROFILE`, `CTR-EVALUATION-FAMILY`, `CTR-EVALUATION-VIEW`, `DEC-026`, `DEC-028` | `src/lib/evaluation/` first, then the domain adapter in `src/lib/analysis/`, projection tests and renderer |
@@ -140,7 +141,7 @@ Composition is an additional relation used when a stable network wraps into a ce
 
 | ID | Module | Responsibility | Dependency rule | Status |
 |---|---|---|---|---|
-| `MOD-CORE` | `src/lib/core` | Pure deterministic types, seeded simulation, environment-provider harness, history and description inputs | may depend only on plain TypeScript/data | prototype |
+| `MOD-CORE` | `src/lib/core` | Pure deterministic types, seeded simulation, environment-provider harness, transactional model-mass accounting, history and description inputs | may depend only on plain TypeScript/data | prototype; accounting slice implemented |
 | `MOD-CHEM` | future `src/lib/chemistry` | solvents, stoichiometry, accessible gradients and compatibility | core contracts only | planned |
 | `MOD-ECOLOGY` | future core subdivision | populations, sparse resource network, habitats and disturbances | core + chemistry contracts | prototype embedded in `simulate.ts` |
 | `MOD-LINEAGE` | future core subdivision | variation, inheritance, split/merge/transfer and major transitions | core contracts | planned |
@@ -206,6 +207,14 @@ Physical backstops remain provider-owned. For exobiology, the long-term electrom
 
 The implemented Exobiology profile combines pinned SSE spectral curves with authored Lab scalars for radiation, energy gradients, habitat state, liquid-medium availability, solvent activity, transport and the current scripted adapter. It does not assume water: a scenario declares its solvent/medium identity and any solvent-specific acidity scale. Only requirements marked `drives-prototype` are mapped into today's microbial equations; recorded-only values remain hashed facts and explicit non-capabilities. JSON import/export uses the same fixture schema, and re-import reproduces the hash. Other domains may declare entirely different inputs through the same contract, such as mass distributions and angular momentum for galactic formation. Evolution Lab does not import physical solvers; System Lab/SSE adapters satisfy the declared profile.
 
+
+### `CTR-FLUX-ACCOUNTING` Transactional material accounting
+
+A scenario that claims material closure emits an `AccountingFrame` for every stored interval. It declares a versioned boundary, unit and minor unit; exact opening/imported/exported/closing totals; ordered transactions with account postings and causal IDs; interval and transaction residuals; and explicit adjustment debt. Provider inflows and outflows are boundary transactions. Internal activation, growth, maintenance, consumption, death, deposits and transfers are balanced postings. Light remains an external energy field rather than material stock.
+
+The validator recomputes every transaction residual from its postings and boundary delta, reconciles transaction imports/exports with frame totals, checks opening-to-closing closure and inter-frame continuity, and rejects schema or debt inconsistencies. A non-zero residual fails `matter-balance`; any floor, cap, repair or unexplained adjustment fails `accounting-debt`. Stored zeroes are never trusted without recomputation.
+
+The microbial prototype uses exact integer centi-units exposed as `0.01 model-mass`. This closes the present abstract transformations deterministically; it is not SI chemistry, elemental/charge conservation, a complete useful-energy ledger or evidence that a provider's physics conserves matter. System Lab remains authoritative for physical boundary consequences. Future packs may declare different unit/account sets through this contract rather than reuse microbial account names.
 
 ### `CTR-HISTORY` History output
 
@@ -277,13 +286,13 @@ Presentation styles are separate data; the renderer does not read engine state. 
 
 The implemented microbial evaluator resumes control and long-shadow futures from the same verified checkpoint immediately before the light change. It compares same-time snapshots and reports five ordinary questions: survival, recovery, accumulated loss, instability/stress and retained represented functions. Supporting metrics include minimum biomass retention, recovery time, integrated biomass loss, end difference, post-return volatility, peak biomass-weighted stress, minimum positive-productivity retention and retained authored capabilities. A generated causal trail links the fork, first stored resource difference, first population-productivity response, deepest bottleneck and outcome back to timeline days.
 
-Recovery currently means at least 90% of same-time control biomass for 14 consecutive stored days. Hard gates currently verify checkpoint integrity, shared-prefix identity, declared branch isolation, resume equivalence, finite values, non-negative stored stocks, exact fork repeatability and absence of one declared unsupported-runaway pattern. Any failed implemented gate makes the result invalid and prominent. Complete unit-aware conservation and accounting for material introduced by prototype floors/caps remain unavailable gates displayed beside the result; scientific calibration is not claimed.
+Recovery currently means at least 90% of same-time control biomass for 14 consecutive stored days. Ten hard gates verify checkpoint integrity, shared-prefix identity, declared branch isolation, resume equivalence, finite values, non-negative stored stocks, exact fork repeatability, absence of one declared unsupported-runaway pattern, exact model-mass balance and zero accounting debt. Any failed gate makes the result invalid and prominent. The accounting claims only the declared abstract unit and boundary; calibrated chemistry, a complete energy ledger and provider-side physical conservation remain explicit scientific limitations.
 
 ### `CTR-EVALUATION-PROFILE` Versioned evaluation knowledge
 
 A compiled evaluation profile is domain-neutral typed configuration with stable identity/version/hash. It declares threshold IDs with units and explanations, metric/question/limitation IDs, and ordered gate definitions. Gates distinguish universal integrity requirements from profile-specific scientific or mechanical requirements. Runtime/domain adapters emit observations against declared gate IDs; an undeclared observation is rejected and a missing observation for an implemented gate fails the result. A deliberately unavailable gate remains visible as `not-checked` and does not silently become a pass.
 
-The implemented microbial profile owns the current survival, recovery, stored-difference and unsupported-growth thresholds. `src/lib/evaluation` owns compilation and gate execution; `src/lib/analysis` owns only microbial observations and metric interpretation.
+The implemented microbial profile owns the current survival, recovery, stored-difference and unsupported-growth thresholds plus its ten gate declarations. `src/lib/evaluation` owns compilation and gate execution; `src/lib/core/accounting.ts` owns ledger validation; `src/lib/analysis` owns only microbial observations and metric interpretation.
 
 ### `CTR-EVALUATION-FAMILY` Checkpoint-paired response family
 
@@ -357,13 +366,13 @@ An experiment records stable identity/version/status, questions, master seed, pr
 
 A qualification report is immutable, deterministic project evidence binding one reference experiment to its manifest, named seeds, content-hashed artifacts and explicit pass/fail checks. The implemented microbial report verifies the exact provider fixture, complete replay, promoted checkpoints, checkpoint-paired futures, all available hard gates, the nine-case response family, a declared-input response, a five-seed replay suite, the structural browser budget and causal-history coverage. Any failed check fails the report; evidence remains visible.
 
-The report qualifies framework plumbing and declared prototype behaviour, not scientific calibration. Unavailable matter/energy and bound-adjustment gates stay listed as model limitations rather than being converted into passes. `npm run qualify` is the focused release command. The Experiment Library consumes only a pinned lightweight summary whose hash and counts are checked against the executable report.
+The report qualifies framework plumbing and declared prototype behaviour, not scientific calibration. All ten declared hard gates now run; matter balance closes only in the declared model-mass minor unit and zero hidden adjustment debt is verified. Calibrated chemistry, a complete useful-energy ledger, statistical calibration and provider-side physical conservation remain limitations rather than being converted into passes. `npm run qualify` is the focused release command. The Experiment Library consumes only a pinned lightweight summary whose hash and counts are checked against the executable report.
 
 ### `CTR-PERFORMANCE` Deterministic workload and local device timing
 
 Performance feedback has two separate records:
 
-1. A deterministic `WorkloadProfile` counts stored snapshots, processed/active node-ticks, peak nodes, flow/event records and serialized-history characters. A versioned `WorkloadBudget` sets authored release limits. These counts and the budget hash may enter qualification.
+1. A deterministic `WorkloadProfile` counts stored snapshots, processed/active node-ticks, peak nodes, flow, accounting and event records, and serialized-history characters. A versioned `WorkloadBudget` sets authored release limits. These counts and the budget hash may enter qualification.
 2. An opt-in `DevicePerformanceObservation` measures median elapsed time for the reference history and nine-case response family on the current browser. Timing never enters a run, checkpoint, qualification hash or seeded result. It carries the versioned benchmark-policy hash, engine version, exact workload/budget, warm-up/sample policy, timing source and local runtime label so observations remain interpretable; the UI neither transmits nor persists it.
 
 The first browser budget is a guardrail, not proof that 500 populations run acceptably. It uses the declared ordinary-world ceiling and storage/work limits to catch uncontrolled growth. The current engine has four authored guilds, so it explicitly withholds a maximum-population estimate: a defensible ceiling requires a variable-node synthetic workload and observations across declared modern-device tiers. A slow local result should cause later iterations to reduce resolved nodes/time, retain less detail or move work off the interaction path; it must not change canonical history.
@@ -479,13 +488,14 @@ Mechanisms:
 - resource limitation, maintenance, growth, death and waste;
 - nutrient pulse and sustained shadow;
 - oxygen/mineral/sediment environmental memory;
-- causal event history and vocabulary layers.
+- causal event history and vocabulary layers;
+- exact transactional closure in declared centi-model-mass units with no hidden adjustment debt.
 
 Explicit non-claims: scientifically calibrated rates, abiogenesis, species-level population genetics, conservation-grade mass units.
 
 ### `MILESTONE-2` Changing pond
 
-Add periodic environment cycles, dormancy, plastic response, evolutionary response and extinction/recovery. Replace procedural metabolism constants with declared transformations and unit-aware ledgers.
+Add periodic environment cycles, dormancy, plastic response, evolutionary response and extinction/recovery. Move the implemented transactions and remaining procedural constants into declared transformations, extend accounting to useful energy and exercise it across a richer integration experiment.
 
 ### `MILESTONE-3` Connected habitats
 
@@ -511,7 +521,7 @@ Parameterize information polymer, structural backbone, solvent, compartments, el
 
 `PERF-001` Browser feasibility depends chiefly on resolution: active nodes, habitats, sparse edges, candidate innovations and temporal checkpoints—not nominal floating-point precision.
 
-The implemented reference profiler separates deterministic structural cost from device speed. Release qualification currently records 361 snapshots, four peak processed populations, 1,444 processed population-days, 2,792 stored flows, seven events and 519,076 serialized JSON characters; all six v0.1 structural limits pass. These values are regression evidence for this experiment, not a universal device-capacity claim.
+The implemented reference profiler separates deterministic structural cost from device speed. Release qualification currently records 361 snapshots, four peak processed populations, 1,444 processed population-days, 2,406 stored presentation flows, 1,960 accounting transactions, seven events and 1,585,662 serialized JSON characters; all seven v0.2 structural limits pass. These values are regression evidence for this experiment, not a universal device-capacity claim.
 
 An opt-in browser benchmark measures the reference history and nine-case response family with three median samples. Its quick/comfortable/slow labels describe only the measuring device. Population ceilings remain withheld until a variable-node workload makes scaling measurable rather than extrapolated from four hard-coded guilds.
 Initial design target per world:
@@ -573,12 +583,14 @@ Initial design target per world:
 | `DEC-031` | Generate one reusable Physical Inputs UI from the provider profile; load/download JSON fixtures and inject only explicitly mapped values while pinning the immutable fixture hash into the run. Solvent/medium identity is declared rather than assuming water. | accepted; Exobiology slice implemented |
 | `DEC-032` | Promote a reference experiment only when its exact provider fixture is pinned, then compile one deterministic qualification report across replay, checkpoints, forks, gates, response coverage, named seeds, workload and causal evidence. | accepted; microbial report implemented |
 | `DEC-033` | Separate deterministic workload budgets from opt-in device elapsed-time observations. Timing cannot alter or qualify seeded outcomes, and maximum-population estimates remain unavailable until measured against a variable-node workload on declared device tiers. | accepted; first profiler and benchmark seam implemented |
+| `DEC-034` | Represent every material change as an ordered transaction over named accounts, with explicit provider boundary movement, recomputed residuals and adjustment debt; both balance and debt are hard gates. | accepted; microbial slice implemented |
+| `DEC-035` | Use exact integer centi-units exposed as `0.01 model-mass` for the microbial prototype while explicitly withholding SI chemistry, complete energy and provider-physics claims. | accepted; prototype scope only |
 
 ## 16. Open questions
 
 | ID | Question | Earliest decision point |
 |---|---|---|
-| `OPEN-001` | Exact unit system and acceptable conservation error for open planetary boundaries? | milestone 2 |
+| `OPEN-001` | Which physical unit/account systems and declared error budgets replace the prototype model-mass ledger for each domain and open provider boundary? | milestone 2 / each DomainRulePack |
 | `OPEN-002` | Epoch integrator: adaptive numerical stepping, equilibrium solver or hybrid event scheduler? | milestone 2 |
 | `OPEN-003` | Minimum aggregate population genetics needed for drift/speciation without genomes? | milestone 3/4 |
 | `OPEN-004` | How should a habitat graph represent overlapping media and vertical layers? | milestone 3 |
@@ -586,7 +598,7 @@ Initial design target per world:
 | `OPEN-006` | Persisted run format and schema migration policy? | before milestone 6 |
 | `OPEN-007` | Package distribution strategy for SSE: workspace package, source import or published package? | milestone 6 |
 | `OPEN-008` | Exact provider-input schema composition, capability negotiation and spectral sampling/return-flux contract? | before live System Lab/SSE adapter |
-| `OPEN-009` | Cross-browser determinism level: quantised floating point or fixed-point for conservation-critical ledgers? | milestone 2 |
+| `OPEN-009` | What additional cross-browser quantisation is required beyond the implemented fixed-centi accounting ledger for non-ledger state and future physical units? | milestone 2 |
 | `OPEN-010` | Exact rulepack extension, replacement and conflict semantics? | before third-party modpacks |
 | `OPEN-011` | Signing, trust, licensing and asset limits for shared modpacks? | before public sharing |
 | `OPEN-012` | Minimal universal predicate, persistence and significance schema for authored state/epoch markers? | first planet harness |

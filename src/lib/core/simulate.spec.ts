@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { validateAccountingFrames } from './accounting';
 import { DEFAULT_CONFIG } from './scenario';
 import { deriveSeed } from './rng';
 import type { EnvironmentProvider } from './types';
@@ -37,6 +38,31 @@ describe('microcosm simulation', () => {
     }
   });
 
+  it('closes every material interval with explicit boundary imports and no adjustment debt', () => {
+    const run = simulate('accounted-ledgers');
+    const validation = validateAccountingFrames(run.snapshots.map(({ accounting }) => accounting));
+    expect(validation).toEqual({
+      balanced: true,
+      debtFree: true,
+      continuity: true,
+      structuralIntegrity: true,
+      maximumResidualMinorUnits: 0,
+      totalAdjustmentDebtMinorUnits: 0
+    });
+    expect(run.snapshots[52].accounting.importedMinorUnits).toBe(1400);
+    expect(run.snapshots[run.config.nutrientPulseAt].accounting.importedMinorUnits).toBeGreaterThan(0);
+    expect(run.snapshots.flatMap(({ accounting }) => accounting.transactions).some(({ kind }) => kind === 'adjustment')).toBe(false);
+  });
+
+  it('funds lineage founders through conserved transfers', () => {
+    const run = simulate('accounted-founders');
+    for (const eventId of ['light-harvesting', 'detritus-recycling', 'direct-grazing']) {
+      const tick = run.events.find(({ id }) => id === eventId)?.tick;
+      expect(tick).toBeTypeOf('number');
+      const transfers = run.snapshots[tick!].accounting.transactions.filter(({ kind }) => kind === 'transfer');
+      expect(transfers.some(({ id, residualMinorUnits }) => id.startsWith('lineage/') && residualMinorUnits === 0)).toBe(true);
+    }
+  });
   it('records innovations and a persistent environmental memory', () => {
     const run = simulate('history');
     const innovationTitles = run.events.filter((item) => item.kind === 'innovation').map((item) => item.title);

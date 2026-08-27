@@ -45,21 +45,21 @@ const modes: InstalledMode[] = [
     summary:
       'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.7.0',
-      lastUpdated: '2026-08-26',
+      version: '0.8.0',
+      lastUpdated: '2026-08-27',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'End-to-end reference qualification across inputs, replay, forks and checks'
+      currentFocus: 'Exact model-mass accounting and hard-gate qualification'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,
-      providerIdentity: 'scripted-microbial-film@0.3.0',
+      providerIdentity: 'scripted-microbial-film@0.4.0',
       domainContentIdentity: 'evolution-lab/base-microbial@0.1.0',
-      presentationIdentity: 'evolution-lab/exobiology-prototype@0.6.0'
+      presentationIdentity: 'evolution-lab/exobiology-prototype@0.7.0'
     },
     intendedInputs: ['Master seed', 'Typed physical-input fixture', 'Scripted daily light and resource inflows'],
     intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events', 'Paired long-shadow feedback'],
-    nextStep: 'Add a unit-aware conservation ledger and explicit bound-adjustment accounting before scaling the model.'
+    nextStep: 'Add the machine-readable candidate-tuning harness, then exercise it with the Alien Lake integration experiment.'
   },
   {
     id: 'firstlife',

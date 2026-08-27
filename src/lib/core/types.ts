@@ -63,12 +63,53 @@ export interface SignatureState {
   organicSediment: number;
 }
 
+export type AccountingTransactionKind =
+  | 'transformation'
+  | 'transfer'
+  | 'boundary-import'
+  | 'boundary-export'
+  | 'adjustment';
+
+export interface MatterPosting {
+  accountId: string;
+  deltaMinorUnits: number;
+}
+
+export interface MatterTransaction {
+  id: string;
+  tick: number;
+  kind: AccountingTransactionKind;
+  label: string;
+  postings: MatterPosting[];
+  boundaryDeltaMinorUnits: number;
+  residualMinorUnits: number;
+  adjustmentDebtMinorUnits: number;
+  causes: string[];
+}
+
+export interface MatterAccountingFrame {
+  schemaVersion: 'evolution-accounting/0.1';
+  tick: number;
+  boundaryId: string;
+  unit: string;
+  minorUnit: number;
+  openingMinorUnits: number;
+  importedMinorUnits: number;
+  exportedMinorUnits: number;
+  closingMinorUnits: number;
+  residualMinorUnits: number;
+  transactionResidualMinorUnits: number;
+  adjustmentDebtMinorUnits: number;
+  transactions: MatterTransaction[];
+}
+
 export interface WorldSnapshot {
   tick: number;
   resources: ResourceLedger;
   populations: PopulationState[];
   flows: FlowRecord[];
   signatures: SignatureState;
+  accounting: MatterAccountingFrame;
   events: SimulationEvent[];
 }
 

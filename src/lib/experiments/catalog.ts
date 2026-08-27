@@ -11,9 +11,9 @@ export const EXPERIMENTS: EvolutionExperiment[] = [
     summary:
       'Tests whether producers, recyclers and grazers can form a legible resource cycle and leave persistent environmental evidence.',
     status: 'reference',
-    manifestHash: 'experiment-manifest/v1-9562f8b3',
+    manifestHash: 'experiment-manifest/v1-e27027da',
     masterSeed: 'fish-and-strawberries',
-    environmentProvider: 'scripted-microbial-film@0.3.0',
+    environmentProvider: 'scripted-microbial-film@0.4.0',
     providerInput: {
       profileId: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.profile.id,
       profileVersion: DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.profile.version,
@@ -34,10 +34,10 @@ export const EXPERIMENTS: EvolutionExperiment[] = [
       'Environmental memory belongs to every process, not only civilisations.'
     ],
     checkpoints: [
-      { tick: 24, expectedHash: 'evolution-checkpoint-v1-7280724c', note: 'Light harvesting becomes viable.' },
-      { tick: 126, expectedHash: 'evolution-checkpoint-v1-7ff92261', note: 'Direct grazing opens the first predator–prey cycle.' },
-      { tick: 231, expectedHash: 'evolution-checkpoint-v1-766c875d', note: 'Verified fork boundary immediately before the long shadow.' },
-      { tick: 269, expectedHash: 'evolution-checkpoint-v1-570fda03', note: 'Recovery begins after light returns.' }
+      { tick: 24, expectedHash: 'evolution-checkpoint-v1-ff2339c6', note: 'Light harvesting becomes viable.' },
+      { tick: 126, expectedHash: 'evolution-checkpoint-v1-2ef23db2', note: 'Direct grazing opens the first predator–prey cycle.' },
+      { tick: 231, expectedHash: 'evolution-checkpoint-v1-36fcf117', note: 'Verified fork boundary immediately before the long shadow.' },
+      { tick: 269, expectedHash: 'evolution-checkpoint-v1-ef2c5832', note: 'Recovery begins after light returns.' }
     ]
   }
 ];

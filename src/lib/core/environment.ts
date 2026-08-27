@@ -24,7 +24,7 @@ function environmentEvent(
  */
 export const scriptedMicrocosmEnvironment: EnvironmentProvider = {
   id: 'scripted-microbial-film',
-  version: '0.3.0',
+  version: '0.4.0',
   frameAt(tick: number, config: SimulationConfig): EnvironmentFrame {
     const events: SimulationEvent[] = [];
     const meanLight = config.meanUsableLight ?? 70;
@@ -50,6 +50,10 @@ export const scriptedMicrocosmEnvironment: EnvironmentProvider = {
       );
     }
 
+    if (tick > 0 && tick % 52 === 0) {
+      inflows.carbon = (inflows.carbon ?? 0) + 10;
+      inflows.minerals = (inflows.minerals ?? 0) + 4;
+    }
     if (tick === config.shadowStartsAt) {
       events.push(
         environmentEvent(

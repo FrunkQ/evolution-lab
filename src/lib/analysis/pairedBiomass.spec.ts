@@ -45,7 +45,7 @@ describe('checkpoint shadow evaluation', () => {
     expect(evaluation.checks.find((check) => check.id === 'non-negative-stocks')?.status).toBe('fail');
   });
 
-  it('reports the richer resilience vector and unavailable accounting checks honestly', () => {
+  it('reports the richer resilience vector and closes every declared hard gate', () => {
     const evaluation = createMicrobialShadowEvaluation('metrics').evaluation;
     expect(evaluation.metrics.integratedBiomassLoss).toBeGreaterThanOrEqual(0);
     expect(evaluation.metrics.postReturnVolatilityPercent).toBeGreaterThanOrEqual(0);
@@ -54,12 +54,40 @@ describe('checkpoint shadow evaluation', () => {
     expect(evaluation.explanation.map((step) => step.id)).toEqual(
       expect.arrayContaining(['fork', 'first-resource', 'first-population', 'bottleneck', 'outcome'])
     );
-    expect(evaluation.checks.filter((check) => check.status === 'not-checked').map((check) => check.id)).toEqual([
-      'matter-balance',
-      'accounting-debt'
-    ]);
+    expect(evaluation.checks.filter((check) => check.status !== 'pass')).toEqual([]);
+    expect(evaluation.checks.find((check) => check.id === 'matter-balance')?.evidence).toContain('Maximum residual: 0');
+    expect(evaluation.checks.find((check) => check.id === 'accounting-debt')?.evidence).toContain('Total adjustment debt: 0');
   });
 
+  it('fails the matter gate when stored accounting no longer closes', () => {
+    const bundle = createMicrobialShadowEvaluation('invalid-matter-accounting');
+    const repeat = structuredClone(bundle.run);
+    bundle.run.snapshots[250].accounting.transactions[0].postings[0].deltaMinorUnits += 1;
+    const evaluation = evaluateCheckpointFork(
+      bundle.checkpoint,
+      bundle.run,
+      bundle.comparisonRun,
+      repeat,
+      simulate('invalid-matter-accounting')
+    );
+    expect(evaluation.status).toBe('invalid');
+    expect(evaluation.checks.find((check) => check.id === 'matter-balance')?.status).toBe('fail');
+  });
+
+  it('fails the debt gate when a numerical repair is declared', () => {
+    const bundle = createMicrobialShadowEvaluation('invalid-accounting-debt');
+    const repeat = structuredClone(bundle.run);
+    bundle.run.snapshots[250].accounting.adjustmentDebtMinorUnits = 1;
+    const evaluation = evaluateCheckpointFork(
+      bundle.checkpoint,
+      bundle.run,
+      bundle.comparisonRun,
+      repeat,
+      simulate('invalid-accounting-debt')
+    );
+    expect(evaluation.status).toBe('invalid');
+    expect(evaluation.checks.find((check) => check.id === 'accounting-debt')?.status).toBe('fail');
+  });
   it('rejects a fork with an unrelated seed or corrupted checkpoint', () => {
     const run = simulate('one-seed');
     const checkpoint = createSimulationCheckpoint(run, run.config.shadowStartsAt - 1);

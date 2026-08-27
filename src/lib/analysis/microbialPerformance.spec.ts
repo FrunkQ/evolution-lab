@@ -26,14 +26,15 @@ describe('microbial workload and device benchmark adapter', () => {
       peakProcessedNodes: 4,
       peakActiveNodes: 4,
       processedNodeTicks: 1444,
-      activeNodeTicks: 1231,
-      flowRecords: 2792,
+      activeNodeTicks: 1229,
+      flowRecords: 2406,
+      accountingRecords: 1960,
       eventRecords: 7,
-      historyCharacters: 519076
+      historyCharacters: 1585662
     });
     expect(evaluateWorkloadBudget(first, MICROBIAL_BROWSER_WORKLOAD_BUDGET)).toMatchObject({
       valid: true,
-      passed: 6,
+      passed: 7,
       failed: 0
     });
   });
@@ -50,7 +51,7 @@ describe('microbial workload and device benchmark adapter', () => {
         version: MICROBIAL_REFERENCE_DEVICE_BENCHMARK.version,
         hash: MICROBIAL_REFERENCE_DEVICE_BENCHMARK.hash
       },
-      engineVersion: '0.4.0',
+      engineVersion: '0.5.0',
       runtimeLabel: 'Test Browser 1',
       timingSource: 'test monotonic clock',
       warmupRuns: 1,

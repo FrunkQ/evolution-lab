@@ -41,16 +41,16 @@ export const MICROBIAL_QUALIFICATION_CLAIM =
   'This qualifies deterministic framework plumbing and declared prototype behaviour. It does not validate the biology as calibrated science.';
 
 export const MICROBIAL_QUALIFICATION_LIMITATIONS = [
-  'Complete unit-aware matter and energy conservation is still unavailable.',
-  'Prototype floor and cap adjustments are not yet emitted as accounting entries.',
+  'Matter closes exactly only in declared 0.01 model-mass units; this is not calibrated SI chemistry.',
+  'Useful-energy conversion and dissipation are not yet a complete energy ledger.',
   'The suite samples five named seeds; it is not a statistical calibration study.',
   'The four lineage definitions remain authored content.'
 ] as const;
 
 export const MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY: ExperimentQualificationSummary = {
   id: 'qualification/biology/microbial-reference',
-  version: '0.1.0',
-  hash: 'experiment-qualification/v1-7ad9732d',
+  version: '0.2.0',
+  hash: 'experiment-qualification/v1-444134d0',
   experimentId: 'lab/microbial-flask-001',
   valid: true,
   passed: 10,
@@ -63,9 +63,9 @@ export const MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY: ExperimentQualificationS
     storedSnapshots: 361,
     peakProcessedNodes: 4,
     processedNodeTicks: 1444,
-    historyCharacters: 519076,
-    limitsPassed: 6,
-    limitsTotal: 6
+    historyCharacters: 1585662,
+    limitsPassed: 7,
+    limitsTotal: 7
   }
 };
 
@@ -104,7 +104,6 @@ export function createMicrobialReferenceQualification(
   }));
   const evaluationBundle = createMicrobialShadowEvaluation(experiment.masterSeed, config);
   const implementedGates = evaluationBundle.evaluation.checks.filter(({ status }) => status !== 'not-checked');
-  const unavailableGates = evaluationBundle.evaluation.checks.filter(({ status }) => status === 'not-checked');
   const family = createMicrobialShadowResponseFamily(experiment.masterSeed, config);
   const repeatedFamily = createMicrobialShadowResponseFamily(experiment.masterSeed, config);
   const alternateFixture = lowLightFixture();
@@ -163,7 +162,7 @@ export function createMicrobialReferenceQualification(
       passed:
         evaluationBundle.evaluation.status !== 'invalid' &&
         implementedGates.every(({ status }) => status === 'pass'),
-      evidence: `${implementedGates.length}/${implementedGates.length} available hard gates pass; ${unavailableGates.length} model-fidelity gates remain visibly unavailable.`
+      evidence: `${implementedGates.length}/${MICROBIAL_SHADOW_PROFILE.gates.length} declared hard gates pass; no gate is silently skipped.`
     },
     {
       id: 'evaluation/response-family',
@@ -216,7 +215,7 @@ export function createMicrobialReferenceQualification(
 
   return compileExperimentQualification({
     id: 'qualification/biology/microbial-reference',
-    version: '0.1.0',
+    version: '0.2.0',
     experiment: {
       id: experiment.id,
       version: experiment.version,

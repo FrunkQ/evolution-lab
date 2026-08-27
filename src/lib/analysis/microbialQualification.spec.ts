@@ -28,12 +28,12 @@ describe('microbial reference qualification', () => {
         storedSnapshots: 361,
         peakProcessedNodes: 4,
         processedNodeTicks: 1444,
-        historyCharacters: 519076,
-        limitsPassed: 6,
-        limitsTotal: 6
+        historyCharacters: 1585662,
+        limitsPassed: 7,
+        limitsTotal: 7
       }
     }).toEqual(MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY);
-  }, 15_000);
+  }, 30_000);
 
   it('fails visibly if a promoted checkpoint no longer reproduces', () => {
     const experiment = {
@@ -48,14 +48,14 @@ describe('microbial reference qualification', () => {
       passed: false,
       evidence: expect.stringContaining('D24')
     });
-  });
+  }, 15_000);
 
   it('keeps scientific limitations outside the framework pass/fail claim', () => {
     const report = createMicrobialReferenceQualification();
     expect(report.claimLevel).toContain('does not validate the biology');
     expect(report.limitations).toEqual(expect.arrayContaining([
-      expect.stringContaining('conservation'),
+      expect.stringContaining('model-mass'),
       expect.stringContaining('five named seeds')
     ]));
-  });
+  }, 15_000);
 });

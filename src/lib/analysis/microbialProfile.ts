@@ -2,7 +2,7 @@ import { compileEvaluationProfile, thresholdValue } from '../evaluation';
 
 export const MICROBIAL_SHADOW_PROFILE = compileEvaluationProfile({
   id: 'biology/microbial-long-shadow',
-  version: '0.1.0',
+  version: '0.2.0',
   title: 'Microbial long-shadow response',
   comparisonKind: 'checkpoint-control-shadow',
   thresholds: [
@@ -23,12 +23,12 @@ export const MICROBIAL_SHADOW_PROFILE = compileEvaluationProfile({
     { id: 'non-negative-stocks', version: '1', scope: 'profile', question: 'Did any stored stock go below zero?', summary: 'For this profile, resource stocks, biomass, signatures and recorded flows may not be negative.', availability: 'implemented' },
     { id: 'repeatability', version: '1', scope: 'universal', question: 'Did the same checkpoint fork repeat exactly?', summary: 'The complete shadow branch is compared with an immediate repeat.', availability: 'implemented' },
     { id: 'unsupported-growth', version: '1', scope: 'profile', question: 'Did either future enter unsupported runaway growth?', summary: 'Rejects a sustained tail that grows above the authored daily and total limits.', availability: 'implemented' },
-    { id: 'matter-balance', version: '1', scope: 'profile', question: 'Can we account for all matter across the boundary?', summary: 'A complete unit-aware conservation ledger is not implemented.', availability: 'unavailable' },
-    { id: 'accounting-debt', version: '1', scope: 'profile', question: 'Can we rule out stock created by prototype floors and caps?', summary: 'Bounds are not yet emitted as accounting entries.', availability: 'unavailable' }
+    { id: 'matter-balance', version: '2', scope: 'profile', question: 'Can we account for all tracked material across the boundary?', summary: 'Every stored model-mass interval must close exactly through internal postings and explicit provider imports or exports.', availability: 'implemented' },
+    { id: 'accounting-debt', version: '2', scope: 'profile', question: 'Did any floor, cap or numerical repair create hidden stock?', summary: 'Any post-hoc stock adjustment or unresolved centi-unit residual is hard-gated debt.', availability: 'implemented' }
   ],
   metricIds: ['lowest-retention', 'recovery-time', 'integrated-biomass-loss', 'post-return-volatility', 'peak-stress', 'productive-flux-retention', 'retained-functions'],
   questionIds: ['survival', 'recovery', 'change', 'fragility', 'function'],
-  limitationIds: ['no-conservation-ledger', 'no-bound-adjustment-ledger', 'no-calibrated-units', 'predefined-lineages']
+  limitationIds: ['model-mass-not-si-chemistry', 'no-energy-conversion-ledger', 'provider-physical-conservation-external', 'predefined-lineages']
 });
 
 export const microbialThreshold = (id: string): number => thresholdValue(MICROBIAL_SHADOW_PROFILE, id);

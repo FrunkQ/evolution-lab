@@ -45,6 +45,7 @@ const profile = {
   processedNodeTicks: 40,
   activeNodeTicks: 24,
   flowRecords: 18,
+  accountingRecords: 12,
   eventRecords: 3,
   historyCharacters: 8000
 };

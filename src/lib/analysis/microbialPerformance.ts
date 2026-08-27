@@ -16,7 +16,7 @@ import { createMicrobialShadowResponseFamily } from './microbialSweep';
 
 export const MICROBIAL_BROWSER_WORKLOAD_BUDGET = compileWorkloadBudget({
   id: 'performance/browser-reference-history',
-  version: '0.1.0',
+  version: '0.2.0',
   title: 'Browser reference-history structural budget',
   limits: [
     {
@@ -46,6 +46,13 @@ export const MICROBIAL_BROWSER_WORKLOAD_BUDGET = compileWorkloadBudget({
       maximum: 100000,
       unit: 'records',
       reason: 'Keep graph projections and retained history bounded.'
+    },
+    {
+      metric: 'accountingRecords',
+      label: 'Stored accounting transactions',
+      maximum: 100000,
+      unit: 'records',
+      reason: 'Keep auditable postings practical before ledger compaction exists.'
     },
     {
       metric: 'eventRecords',
@@ -92,6 +99,7 @@ export function profileMicrobialRunWorkload(run: SimulationRun): WorkloadProfile
       0
     ),
     flowRecords: run.snapshots.reduce((sum, { flows }) => sum + flows.length, 0),
+    accountingRecords: run.snapshots.reduce((sum, { accounting }) => sum + accounting.transactions.length, 0),
     eventRecords: run.events.length,
     historyCharacters: JSON.stringify(run).length
   };
