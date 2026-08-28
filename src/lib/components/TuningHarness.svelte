@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type {
     CompiledTuningSpec,
     TuningCandidateAssessment,
     TuningParameterChange
   } from '../calibration';
+  import { createBaselineTuningValues } from '../calibration';
 
   interface Props {
     spec: CompiledTuningSpec;
@@ -14,19 +16,19 @@
   }
 
   let { spec, onevaluate }: Props = $props();
-  let values = $state<Record<string, number>>({});
+  let values = $state<Record<string, number>>(untrack(() => createBaselineTuningValues(spec)));
+  let activeSpecHash = $state(untrack(() => spec.hash));
   let hypothesis = $state('A small bounded mechanism change may improve part of the response without breaking validity.');
   let assessment = $state<TuningCandidateAssessment | null>(null);
   let error = $state('');
   let running = $state(false);
 
   $effect(() => {
-    const missing = spec.parameters.filter((parameter) => values[parameter.id] === undefined);
-    if (missing.length) {
-      values = {
-        ...values,
-        ...Object.fromEntries(missing.map((parameter) => [parameter.id, parameter.baseline]))
-      };
+    if (activeSpecHash !== spec.hash) {
+      values = createBaselineTuningValues(spec);
+      activeSpecHash = spec.hash;
+      assessment = null;
+      error = '';
     }
   });
 
@@ -64,7 +66,7 @@
   }
 
   function reset() {
-    values = Object.fromEntries(spec.parameters.map((parameter) => [parameter.id, parameter.baseline]));
+    values = createBaselineTuningValues(spec);
     assessment = null;
     error = '';
   }

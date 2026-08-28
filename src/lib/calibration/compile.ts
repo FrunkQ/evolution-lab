@@ -18,6 +18,12 @@ function artifactIsComplete(artifact: { id: string; version: string; hash: strin
   return STABLE_ID.test(artifact.id) && SEMVER.test(artifact.version) && Boolean(artifact.hash.trim());
 }
 
+export function createBaselineTuningValues(
+  spec: Pick<CompiledTuningSpec, 'parameters'>
+): Record<string, number> {
+  return Object.fromEntries(spec.parameters.map(({ id, baseline }) => [id, baseline]));
+}
+
 export function compileTuningSpec(definition: TuningSpecDefinition): CompiledTuningSpec {
   const issues: string[] = [];
   if (!STABLE_ID.test(definition.id)) issues.push('Tuning spec id must be stable and namespaced.');

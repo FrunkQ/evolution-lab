@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compileTuningCandidate, compileTuningSpec } from './compile';
+import { compileTuningCandidate, compileTuningSpec, createBaselineTuningValues } from './compile';
 import { compareCandidateEvaluations, evaluateTuningCandidate } from './evaluate';
 
 const definition = () => ({
@@ -44,6 +44,7 @@ describe('deterministic tuning contracts', () => {
     expect(first).toEqual(second);
     const candidate = compileTuningCandidate(first, candidateDefinition(first));
     expect(compileTuningCandidate(first, JSON.parse(JSON.stringify(candidateDefinition(first))))).toEqual(candidate);
+    expect(createBaselineTuningValues(first)).toEqual({ 'provider/fact': 280, 'test/rate': 1 });
   });
 
   it('rejects overlapping calibration seeds and invalid candidate changes', () => {
