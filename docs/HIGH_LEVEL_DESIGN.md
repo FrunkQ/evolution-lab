@@ -130,6 +130,8 @@ Experiments are retained as versioned learning records. Each stores its question
 
 The first implemented family asks a broader version of one experiment question: how much darkness can the same microbial community absorb? Nine futures share one saved checkpoint and vary only retained usable light and duration. This exposes a response surface rather than inviting a conclusion from one lucky run. The centre case remains the detailed graph; the other cells are compact, hashed evaluations. It is not yet calibration or a multi-seed statistical study.
 
+The next implemented layer turns those checks into a disciplined candidate conversation. A person, numerical optimiser or language model may suggest one bounded mechanism change, but the proposal owns nothing: typed units, bounds, frozen provider facts, hard gates, seed suites and objectives all come from a versioned tuning specification. The candidate is compiled and hashed before any run. Invalid histories are rejected before useful-looking metrics can distract us; valid histories keep a vector of consequences so improved resilience cannot conceal higher volatility or browser cost. Working seeds guide iteration, while held-out seeds ask whether the idea travelled beyond the examples that inspired it. This is a practical engineering feedback loop, not automatic scientific calibration.
+
 
 Family trees, organism images and 3D forms are separate deterministic artifacts derived from lineage facts and an inherited morphology recipe. The same artifacts can be displayed by the Lab or SSE without making presentation assets part of the biological state. See `docs/RULEPACK_AND_LAB_ARCHITECTURE.md` for the detailed boundary.
 

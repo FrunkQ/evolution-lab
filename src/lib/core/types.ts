@@ -119,6 +119,15 @@ export interface ProviderInputReference {
   fixtureHash: string;
 }
 
+export interface RuntimeParameterSet {
+  schemaVersion: 'evolution-runtime-parameters/0.1';
+  specId: string;
+  specVersion: string;
+  specHash: string;
+  candidateHash: string;
+  values: Readonly<Record<string, number>>;
+}
+
 export interface SimulationConfig {
   duration: number;
   nutrientPulseAt: number;
@@ -129,6 +138,7 @@ export interface SimulationConfig {
   lightCycleAmplitude?: number;
   lightCycleDays?: number;
   providerInput?: ProviderInputReference;
+  runtimeParameters?: RuntimeParameterSet;
 }
 
 export interface EnvironmentFrame {

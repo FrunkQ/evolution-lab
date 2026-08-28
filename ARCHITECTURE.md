@@ -16,6 +16,7 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
 | Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-PROFILE`, `CTR-EVALUATION-FAMILY`, `CTR-EVALUATION-VIEW`, `DEC-026`, `DEC-028` | `src/lib/evaluation/` first, then the domain adapter in `src/lib/analysis/`, projection tests and renderer |
+| Add or change candidate tuning | `INV-DET`, `INV-LEGIBILITY`, `CTR-TUNING`, `DEC-036` | `src/lib/calibration/` contracts first, then `src/lib/analysis/microbialTuning.ts`, CLI and `TuningHarness.svelte` |
 | Add or change educational help | `INV-LEGIBILITY`, `CTR-HELP-VIEW`, `DEC-022` | `docs/EDUCATION_AND_HELP.md`, `src/lib/help/`, its tests, then `HelpPanel.svelte` |
 | Add or change a product mode/route | `INV-PRESENTATION`, `CTR-MODE`, `DEC-018`, `DEC-020` | `src/lib/modes/catalog.ts`, its tests, then the app shell |
 | Add or change a temporal chart | `CTR-TEMPORAL-VIEW`, `DEC-019` | `src/lib/projections/temporal.ts`, its tests, then `LevelsThroughTime.svelte` |
@@ -152,6 +153,7 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
 | `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types; biomass, positive-productivity, weighted-stress and resource histories; checkpoint-control overlays; reserved run palette; visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented checkpoint-feedback slice |
 | `MOD-EVALUATION` | `src/lib/evaluation` | domain-neutral typed evaluation profiles, threshold validation, universal/profile gate execution and evaluation-family contracts | plain TypeScript/data; no Svelte, browser or domain imports | implemented first generic slice |
+| `MOD-CALIBRATION` | `src/lib/calibration` | immutable tuning specs, candidate/evaluation/attempt records, hard-gate-first vectors, Pareto comparison and OpenAI-compatible proposal boundary | plain TypeScript/data; cannot mutate packs, providers, runs or promotion state | implemented bounded-candidate slice |
 | `MOD-ANALYSIS` | `src/lib/analysis` | microbial observations, paired metrics/causal steps, severity-by-duration family, reference qualification assembly and workload/benchmark adapters | read-only over `SimulationRun` values; consumes evaluation/experiment contracts; no Svelte state and no timing in run identity | implemented qualification slice |
 | `MOD-HELP` | `src/lib/help` | cumulative Curious/Biology/Engine teaching content and isolated concept-demo data | consumes analysis facts; cannot import or mutate app/runtime state | implemented first teaching slice |
 | `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, manifest/checkpoint hashes, domain-neutral qualification reports, workload budgets and device-timing summaries | depends on contracts, not app state; device timing is never canonical | pinned-input microbial qualification implemented |
@@ -362,6 +364,14 @@ The runtime receives only a validated immutable compiled pack. Draft state, sele
 
 An experiment records stable identity/version/status, questions, master seed, provider and pack versions, the exact provider-fixture identity, environment/scenario inputs, authored overlays, checkpoint ticks, observations and lessons. Drafts may be incomplete. `reference` status requires a pinned provider input, a canonical manifest hash and an expected content hash for every declared checkpoint, promoting the experiment to a regression fixture. Silent content changes invalidate the manifest hash. Retired experiments remain readable.
 
+### `CTR-TUNING` Immutable bounded candidate evaluation
+
+A `TuningSpec` binds one versioned base artifact and evaluation profile to typed parameter IDs, units, bounds, learnable/conditionally-learnable/frozen authority, hard gates, a multi-objective Fitness Vector, explicit limitations and disjoint smoke/calibration/held-out/release seed suites. Compilation validates the complete definition and gives it a canonical content hash. Provider-authoritative facts are frozen observations, never optimiser controls.
+
+A candidate states one hypothesis and a bounded set of changes, pins the exact spec and generator provenance, resolves immutable runtime values and receives its own content hash. A candidate run carries the spec and candidate hashes; supplying no runtime parameter set preserves the promoted reference configuration and checkpoint hashes. Candidate evaluation executes every hard gate before interpreting metrics. A failed gate cannot be outweighed by a favourable number. Valid candidates are compared through Pareto dominance/trade-off/equivalence, never one hidden reward.
+
+The OpenAI-compatible boundary may ask a local or remote model to propose one strict JSON candidate. Model text is untrusted until it passes schema, authority, unit and bound validation. An LLM cannot change code, canonical packs, provider facts, gates, suites or promotion status. Timing, token and reported cost observations may be recorded for model comparison but never enter simulation, candidate or evaluation hashes. Promotion remains an explicit human-governed activity; the current harness only produces review evidence.
+
 ### `CTR-QUALIFICATION` End-to-end reference qualification
 
 A qualification report is immutable, deterministic project evidence binding one reference experiment to its manifest, named seeds, content-hashed artifacts and explicit pass/fail checks. The implemented microbial report verifies the exact provider fixture, complete replay, promoted checkpoints, checkpoint-paired futures, all available hard gates, the nine-case response family, a declared-input response, a five-seed replay suite, the structural browser budget and causal-history coverage. Any failed check fails the report; evidence remains visible.
@@ -453,6 +463,8 @@ An artifact request identifies the run manifest, lineage/entity ID, time, artifa
 
 `UI-008` Physical Inputs is a reusable profile-driven data injector. It renders scalar and curve controls, their units/use/provenance, pinned spectral previews, validation issues, JSON load/download and an explicit push action. It consumes `CTR-PROVIDER-REQUIREMENT`; its future live-provider selector is an adapter seam, not an SSE dependency or a simulated connection.
 
+`UI-009` Tuning Harness explains propose → validate → run → compare → held-out review in ordinary language. It generates controls from `CTR-TUNING`, distinguishes adjustable mechanism values from frozen provider facts, uses the same candidate compiler as CLI/model callers, displays hard-gate results before Fitness Vector trade-offs and makes the prototype/non-calibration claim prominent. It cannot connect a browser session directly to an LLM or promote a candidate.
+
 ## 12. Milestones
 
 ### `MILESTONE-0` Skeleton — current
@@ -474,6 +486,7 @@ Exit criteria:
 - scaffold modes visibly distinguish intended contracts from implemented simulation.
 - the promoted microbial experiment starts from its content-hashed provider fixture and passes `npm run qualify`;
 - deterministic workload counts stay within an authored browser budget while device timing remains optional and non-canonical.
+- the machine-readable and human tuning surfaces evaluate immutable bounded candidates through all hard gates, disjoint calibration/held-out seeds and an inspectable multi-objective vector without changing the promoted default history.
 
 ### `MILESTONE-1` Microbial flask — current prototype target
 
@@ -585,6 +598,7 @@ Initial design target per world:
 | `DEC-033` | Separate deterministic workload budgets from opt-in device elapsed-time observations. Timing cannot alter or qualify seeded outcomes, and maximum-population estimates remain unavailable until measured against a variable-node workload on declared device tiers. | accepted; first profiler and benchmark seam implemented |
 | `DEC-034` | Represent every material change as an ordered transaction over named accounts, with explicit provider boundary movement, recomputed residuals and adjustment debt; both balance and debt are hard gates. | accepted; microbial slice implemented |
 | `DEC-035` | Use exact integer centi-units exposed as `0.01 model-mass` for the microbial prototype while explicitly withholding SI chemistry, complete energy and provider-physics claims. | accepted; prototype scope only |
+| `DEC-036` | Treat AI or optimiser output only as one schema-constrained immutable candidate: validate typed bounds and authority before deterministic runs, execute hard gates before a Pareto Fitness Vector, preserve held-out seeds, exclude timing/cost from canonical hashes and require human-governed promotion. | accepted; microbial harness and OpenAI-compatible CLI seam implemented |
 
 ## 16. Open questions
 

@@ -4,7 +4,7 @@ A browser-first laboratory for deterministic, explainable histories of evolving 
 
 > Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-That is the target architecture. The current `v0.9` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork and a nine-case response family around one scripted light change. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or AI-assisted authoring. Causal provenance remains a defining invariant; AI assistance may eventually help author declarative candidates, never act as runtime authority.
+That is the target architecture. The current `v0.10` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork, a nine-case response family and a bounded candidate-tuning harness. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or general AI-assisted pack authoring. Causal provenance remains a defining invariant; the implemented AI seam may propose one strictly validated candidate, never act as runtime or promotion authority.
 
 The Lab is for learning, exploration and challenge. Its aim is to be plausibly close to the relevant scientific thinking at the level it actually models, while exposing assumptions and omissions clearly enough to invite useful criticism. It is not evidence, prediction, calibration or scientific proof.
 
@@ -18,16 +18,19 @@ The root route `/` is a recently-updated catalogue. It and direct route loads re
 
 There is one application and one deployment. Modes are paths, not subdomains or code forks. Each catalogue card shows its own content version, intentional last-edit date and lifecycle separately from the global Lab/Engine/Schema/Provider release strip.
 
-The Exobiology workspace has four permanent areas:
+The Exobiology workspace has five permanent areas:
 
 - **Live experiment** — explore the current seeded microbial history.
 - **Physical Inputs** — create, validate, import/export and inject a content-hashed provider dataset from a reusable typed profile.
 - **Rule Workshop** — author and validate scalable declarative packs independently of the runtime and SSE.
+- **Tuning Harness** — propose one bounded mechanism change, validate it, run hard gates and compare its multi-objective behaviour on working and held-out seeds.
 - **Experiment Library** — retain reproducible questions, pinned inputs, checkpoint hashes, qualification evidence and lessons instead of discarding prototypes.
 
 The Physical Inputs harness is generated from the Exobiology provider-requirement profile rather than a hand-built form. It accepts scalar and spectral-curve data with units, bounds and provenance; can load or download JSON fixtures; and pins an injected fixture hash into the run manifest. Only controls explicitly labelled **Drives this experiment** affect the current aggregate equations. Temperature, pressure, gravity, radiation, chemical energy, liquid-medium availability, solvent activity and other recorded facts remain visible but do not falsely claim live mechanisms. The same harness can render another mode's profile, while a future SSE/System Lab adapter must satisfy this contract before it can stream or resolve richer data.
 
 The promoted microbial reference now starts from the exact default Physical Inputs fixture rather than hidden fallback values. A content-hashed qualification report checks the input identity, exact replay, four checkpoint hashes, paired-future integrity, all ten declared hard gates, all nine response cases, a deliberately changed input, five named seeds, structural workload and causal-history coverage. The Experiment Library shows its pinned 10/10 summary. This proves that the prototype framework is wired reproducibly; it does not prove that its biology is calibrated.
+
+The tuning slice exposes three existing light-weaver constants—growth, maintenance and light response—as typed bounded candidate values while keeping provider mean light frozen. `TuningSpec`, candidate, evaluation and model-attempt evidence are content-addressed. Every candidate passes all hard validity checks before its Fitness Vector is interpreted; calibration and held-out seeds are distinct, and Pareto comparison preserves trade-offs rather than hiding them in one reward. The browser offers a human control surface, while `npm run tune --` emits and accepts JSON for numerical tools or an optional OpenAI-compatible LM Studio/OpenRouter connector. Model output is untrusted until compiled, and neither the CLI nor UI promotes canonical content.
 
 Performance is split honestly. Release qualification records deterministic structural work—361 snapshots, four peak processed populations, 1,444 population-days, 1,960 accounting transactions and about 1.59M serialized characters—against seven authored browser limits. **Measure this device** optionally times the reference history and nine-case map locally, recording the benchmark version, exact workload and browser context only in the page. Those milliseconds never enter seeded results or hashes and are not sent or persisted. The app does not yet estimate a maximum population count because the present engine processes four authored guilds; a defensible ceiling needs a variable-node benchmark across declared device tiers.
 
@@ -53,6 +56,17 @@ npm run check
 npm run build
 ```
 
+Machine-readable tuning examples:
+
+```sh
+npm run tune -- template
+npm run tune -- baseline calibration
+npm run tune -- evaluate candidate.json release
+EVOLUTION_TUNER_BASE_URL=http://localhost:1234/v1 EVOLUTION_TUNER_MODEL=google/gemma-4-26b-a4b npm run tune -- model
+```
+
+For OpenRouter, set the same base URL/model variables, `EVOLUTION_TUNER_ENDPOINT_KIND=remote` and `EVOLUTION_TUNER_API_KEY`. The key is read from the process environment and is never printed or stored by the harness.
+
 ## Repository map
 
 - `ARCHITECTURE.md` — canonical architecture and coding-agent reference.
@@ -66,6 +80,7 @@ npm run build
 - `src/lib/contracts` — versioned external compatibility contracts and pinned generated fixtures.
 - `src/lib/core` — deterministic framework-neutral simulation code, including the transactional accounting authority.
 - `src/lib/evaluation` — domain-neutral evaluation-profile compilation, thresholds, gate execution and family contracts.
+- `src/lib/calibration` — immutable tuning specs/candidates/evaluations, Pareto comparison, attempt evidence and the OpenAI-compatible proposal boundary.
 - `src/lib/analysis` — microbial observations, paired metrics/causal steps, response-family, qualification and performance adapters.
 - `src/lib/help` — framework-neutral cumulative help content and isolated concept-demo projections.
 - `src/lib/modes` — single typed authority for route, lifecycle and per-mode release metadata.
@@ -74,6 +89,7 @@ npm run build
 - `src/lib/experiments` — versioned experiments, qualification reports, workload budgets and accumulated learning.
 - `src/lib/components` — reusable Svelte components intended for both the Lab and SSE.
 - `src/App.svelte` — standalone experimental host.
+- `scripts/tune.ts` — machine-readable candidate template, baseline, evaluation and optional model-attempt CLI.
 
 The project is separate from Star System Explorer. No SSE code or stores are imported. The current reference fixture is generated numerical spectral output from a pinned SSE beta revision, with its seed, source provenance and payload hash recorded; no SSE implementation or rulepack data is copied.
 
@@ -85,6 +101,8 @@ The current comparison and every response-map case are real branches from one co
 
 
 The current workload budget is an early-warning guardrail, not a device-capacity certification. Local benchmark labels apply only to the browser that ran them. Population limits remain unknown until the engine can exercise a variable number of aggregate nodes under repeatable synthetic loads.
+
+The tuning harness measures consistency against authored engineering objectives; it is not Bayesian inference, biological parameter estimation or scientific validation. Its five named seeds are deliberately small fixtures. Rejected proposals and model-attempt evidence can be retained by callers, but governed candidate archives and promotion workflows remain future work.
 
 ## Licence
 

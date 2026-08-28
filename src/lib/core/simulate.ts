@@ -31,6 +31,22 @@ import type {
 const round = (value: number) => Math.round(value * 100) / 100;
 const clampRatio = (value: number) => Math.max(0, Math.min(1, value));
 
+export const MICROBIAL_RUNTIME_PARAMETER_IDS = {
+  lightWeaverGrowthRate: 'biology/light-weaver/growth-rate',
+  lightWeaverMaintenanceRate: 'biology/light-weaver/maintenance-rate',
+  lightWeaverLightHalfSaturation: 'biology/light-weaver/light-half-saturation'
+} as const;
+
+export const MICROBIAL_RUNTIME_PARAMETER_BASELINE = Object.freeze({
+  [MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverGrowthRate]: 0.048,
+  [MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverMaintenanceRate]: 0.011,
+  [MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverLightHalfSaturation]: 76
+});
+
+function runtimeParameter(config: SimulationConfig, id: string, fallback: number): number {
+  return config.runtimeParameters?.values[id] ?? fallback;
+}
+
 type MaterialResourceKey = Exclude<ResourceKey, 'light'>;
 
 function population(lineageId: string, biomass: number, active = false): PopulationState {
@@ -140,6 +156,27 @@ export function validateSimulationConfig(config: SimulationConfig): void {
   }
   if (config.providerInput && (!config.providerInput.profileId.trim() || !config.providerInput.profileVersion.trim() || !config.providerInput.fixtureHash.trim())) {
     throw new Error('Simulation provider input identity must be complete.');
+  }
+  if (config.runtimeParameters) {
+    const parameters = config.runtimeParameters;
+    if (
+      parameters.schemaVersion !== 'evolution-runtime-parameters/0.1' ||
+      !parameters.specId.trim() ||
+      !parameters.specVersion.trim() ||
+      !parameters.specHash.trim() ||
+      !parameters.candidateHash.trim()
+    ) {
+      throw new Error('Simulation runtime parameter identity must be complete.');
+    }
+    if (Object.values(parameters.values).some((value) => !Number.isFinite(value))) {
+      throw new Error('Simulation runtime parameter values must be finite.');
+    }
+    for (const id of Object.values(MICROBIAL_RUNTIME_PARAMETER_IDS)) {
+      const value = parameters.values[id];
+      if (value !== undefined && value <= 0) {
+        throw new Error(`Simulation runtime parameter ${id} must be positive.`);
+      }
+    }
   }
 }
 
@@ -320,15 +357,30 @@ function runSimulation(
 
     const phototroph = populations.get('light-weavers')!;
     if (phototroph.active) {
-      const lightLimit = resources.light / 76;
+      const lightHalfSaturation = runtimeParameter(
+        config,
+        MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverLightHalfSaturation,
+        MICROBIAL_RUNTIME_PARAMETER_BASELINE[MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverLightHalfSaturation]
+      );
+      const maintenanceRate = runtimeParameter(
+        config,
+        MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverMaintenanceRate,
+        MICROBIAL_RUNTIME_PARAMETER_BASELINE[MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverMaintenanceRate]
+      );
+      const growthRate = runtimeParameter(
+        config,
+        MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverGrowthRate,
+        MICROBIAL_RUNTIME_PARAMETER_BASELINE[MICROBIAL_RUNTIME_PARAMETER_IDS.lightWeaverGrowthRate]
+      );
+      const lightLimit = resources.light / lightHalfSaturation;
       const mineralLimit = resources.minerals / (resources.minerals + 26);
       const carbonLimit = resources.carbon / (resources.carbon + 28);
       const photoLimit = Math.min(lightLimit, mineralLimit * 1.9, carbonLimit * 1.8, 1.15);
-      const photoMaintenance = Math.min(toCentiUnits(phototroph.biomass), toCentiUnits(phototroph.biomass * 0.011));
+      const photoMaintenance = Math.min(toCentiUnits(phototroph.biomass), toCentiUnits(phototroph.biomass * maintenanceRate));
       const photoCapacity = Math.max(0, 15500 - toCentiUnits(phototroph.biomass) + photoMaintenance);
       const photoCandidate = Math.min(
         photoCapacity,
-        toCentiUnits(phototroph.biomass * 0.048 * photoLimit * variation)
+        toCentiUnits(phototroph.biomass * growthRate * photoLimit * variation)
       );
       const photoStoichiometry = (growth: number) => {
         const oxygen = Math.round(growth * 0.82);

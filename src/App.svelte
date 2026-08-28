@@ -16,7 +16,9 @@
   import ReleaseIdentity from './lib/components/ReleaseIdentity.svelte';
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
-  import { benchmarkMicrobialReferenceDevice, createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily, MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY } from './lib/analysis';
+  import TuningHarness from './lib/components/TuningHarness.svelte';
+  import { assessMicrobialTuningCandidate, benchmarkMicrobialReferenceDevice, createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily, createMicrobialTuningCandidate, MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY, MICROBIAL_TUNING_SPEC } from './lib/analysis';
+  import type { TuningParameterChange } from './lib/calibration';
   import { DEFAULT_CONFIG } from './lib/core';
   import type { SimulationConfig, TreeLens } from './lib/core';
   import {
@@ -45,7 +47,7 @@
   import type { RulePack } from './lib/rules';
   import { ENGINE_VERSION, LAB_VERSION, RUN_SCHEMA_VERSION } from './lib/version';
 
-  type LabArea = 'simulation' | 'inputs' | 'rules' | 'experiments';
+  type LabArea = 'simulation' | 'inputs' | 'rules' | 'tuning' | 'experiments';
 
   const route = resolveRoute(window.location.pathname);
   const activeMode = route.kind === 'mode' ? route.mode : null;
@@ -121,7 +123,9 @@
               ? 'Define the world before it evolves.'
               : labArea === 'rules'
                 ? 'Build the possibility space.'
-                : 'Keep every useful mistake.'
+                : labArea === 'tuning'
+                  ? 'Challenge one change at a time.'
+                  : 'Keep every useful mistake.'
   );
   const headerSummary = $derived(
     route.kind === 'catalogue'
@@ -136,7 +140,9 @@
               ? 'Create, validate and inject a pinned physical dataset through the same boundary a future provider must satisfy.'
               : labArea === 'rules'
                 ? 'Author scalable, declarative rulepacks without coupling the tools to SSE or the runtime.'
-                : 'Re-run, clone and compare the experiments that shaped the model.'
+                : labArea === 'tuning'
+                  ? 'Propose, validate and compare bounded candidates without handing an AI authority over the model.'
+                  : 'Re-run, clone and compare the experiments that shaped the model.'
   );
 
   function rerun() {
@@ -207,6 +213,10 @@
       navigator.userAgent || 'Browser runtime not reported',
       'performance.now()'
     );
+  }
+
+  function evaluateTuningCandidate(changes: readonly TuningParameterChange[], hypothesis: string) {
+    return assessMicrobialTuningCandidate(createMicrobialTuningCandidate(changes, hypothesis));
   }
 
   function setTick(nextTick: number) {
@@ -302,6 +312,7 @@
       <button class:active={labArea === 'simulation'} onclick={() => (labArea = 'simulation')}>Live experiment</button>
       <button class:active={labArea === 'inputs'} onclick={() => (labArea = 'inputs')}>Physical Inputs</button>
       <button class:active={labArea === 'rules'} onclick={() => (labArea = 'rules')}>Rule Workshop</button>
+      <button class:active={labArea === 'tuning'} onclick={() => (labArea = 'tuning')}>Tuning Harness</button>
       <button class:active={labArea === 'experiments'} onclick={() => (labArea = 'experiments')}>Experiment Library</button>
     </nav>
 
@@ -349,6 +360,8 @@
       <ProviderInputHarness profile={EXOBIOLOGY_PROVIDER_REQUIREMENTS} fixture={inputDraft} compiled={compiledInput} issues={inputIssues} activeHash={activeInputHash} onchange={(fixture) => (inputDraft = fixture)} oninject={injectProviderFixture} onreset={resetProviderFixture} onexport={exportProviderFixture} onimport={importProviderFixture} />
     {:else if labArea === 'rules'}
       <RuleWorkshop pack={workingPack} onchange={(pack) => (workingPack = pack)} onexport={exportRulePack} />
+    {:else if labArea === 'tuning'}
+      <TuningHarness spec={MICROBIAL_TUNING_SPEC} onevaluate={evaluateTuningCandidate} />
     {:else}
       <ExperimentLibrary experiments={EXPERIMENTS} qualifications={[MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY]} onmeasure={measureReferenceDevicePerformance} onrun={runExperiment} onopenrules={() => (labArea = 'rules')} />
     {/if}
@@ -368,7 +381,9 @@
                 ? 'Provider boundary: typed, validated, content-addressed datasets'
                 : labArea === 'rules'
                   ? 'Authoring milestone: declarative rulepacks'
-                  : 'Project memory: reproducible experiments'}
+                  : labArea === 'tuning'
+                    ? 'Candidate boundary: bounded proposals, hard gates and held-out review'
+                    : 'Project memory: reproducible experiments'}
     </span>
     <span>Framework-neutral projections · reusable Svelte components · deterministic history</span>
   </footer>
