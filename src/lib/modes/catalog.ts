@@ -45,11 +45,11 @@ const modes: InstalledMode[] = [
     summary:
       'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.9.0',
+      version: '0.9.1',
       lastUpdated: '2026-08-28',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'Bounded candidate tuning with held-out deterministic review'
+      currentFocus: 'Bounded model revision with held-out deterministic review'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,

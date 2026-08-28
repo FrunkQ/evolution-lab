@@ -163,6 +163,8 @@ export interface TuningCandidateProposal {
   changes: readonly TuningParameterChange[];
 }
 
+export type StructuredOutputMode = 'json-schema' | 'json-object' | 'text';
+
 export interface OpenAICompatibleEndpoint {
   providerId: string;
   endpointKind: 'local' | 'remote';
@@ -173,6 +175,7 @@ export interface OpenAICompatibleEndpoint {
   seed?: number;
   jsonMode?: boolean;
   maxTokens?: number;
+  outputModes?: readonly StructuredOutputMode[];
 }
 
 export interface ModelUsageObservation {
@@ -187,6 +190,7 @@ export interface TuningModelObservation {
   endpointKind: OpenAICompatibleEndpoint['endpointKind'];
   modelId: string;
   returnedModelId?: string;
+  responseMode: StructuredOutputMode;
   promptHash: string;
   responseHash?: string;
   usage: ModelUsageObservation;
@@ -207,12 +211,15 @@ export interface TuningCandidateAssessment {
 }
 
 export interface TuningModelAttemptRecord {
-  schemaVersion: 'evolution-model-attempt/0.1';
+  schemaVersion: 'evolution-model-attempt/0.2';
+  attemptNumber: number;
   providerId: string;
   endpointKind: OpenAICompatibleEndpoint['endpointKind'];
   requestedModelId: string;
   returnedModelId?: string;
+  responseMode: StructuredOutputMode;
   promptHash: string;
+  previousAttemptEvidenceHash?: string;
   responseHash?: string;
   schemaValid: boolean;
   candidateAccepted: boolean;
@@ -227,4 +234,18 @@ export interface TuningModelAttemptRecord {
   usage: ModelUsageObservation;
   elapsedMilliseconds: number;
   canonicalEvidenceHash: string;
+}
+
+export interface TuningModelLoopResult {
+  schemaVersion: 'evolution-model-loop/0.1';
+  spec: TuningArtifactReference;
+  model: {
+    providerId: string;
+    endpointKind: OpenAICompatibleEndpoint['endpointKind'];
+    requestedModelId: string;
+  };
+  maxAttempts: number;
+  attempts: readonly TuningModelAttemptRecord[];
+  accepted: readonly TuningCandidateAssessment[];
+  exhaustedWithoutValidCandidate: boolean;
 }

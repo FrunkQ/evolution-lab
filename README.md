@@ -4,7 +4,7 @@ A browser-first laboratory for deterministic, explainable histories of evolving 
 
 > Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-That is the target architecture. The current `v0.10` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork, a nine-case response family and a bounded candidate-tuning harness. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or general AI-assisted pack authoring. Causal provenance remains a defining invariant; the implemented AI seam may propose one strictly validated candidate, never act as runtime or promotion authority.
+That is the target architecture. The current `v0.10.1` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork, a nine-case response family and a bounded candidate-tuning harness. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or general AI-assisted pack authoring. Causal provenance remains a defining invariant; the implemented AI seam may propose strictly validated candidates within a small review loop, never act as runtime or promotion authority.
 
 The Lab is for learning, exploration and challenge. Its aim is to be plausibly close to the relevant scientific thinking at the level it actually models, while exposing assumptions and omissions clearly enough to invite useful criticism. It is not evidence, prediction, calibration or scientific proof.
 
@@ -30,7 +30,7 @@ The Physical Inputs harness is generated from the Exobiology provider-requiremen
 
 The promoted microbial reference now starts from the exact default Physical Inputs fixture rather than hidden fallback values. A content-hashed qualification report checks the input identity, exact replay, four checkpoint hashes, paired-future integrity, all ten declared hard gates, all nine response cases, a deliberately changed input, five named seeds, structural workload and causal-history coverage. The Experiment Library shows its pinned 10/10 summary. This proves that the prototype framework is wired reproducibly; it does not prove that its biology is calibrated.
 
-The tuning slice exposes three existing light-weaver constants—growth, maintenance and light response—as typed bounded candidate values while keeping provider mean light frozen. `TuningSpec`, candidate, evaluation and model-attempt evidence are content-addressed. Every candidate passes all hard validity checks before its Fitness Vector is interpreted; calibration and held-out seeds are distinct, and Pareto comparison preserves trade-offs rather than hiding them in one reward. The browser offers a human control surface, while `npm run tune --` emits and accepts JSON for numerical tools or an optional OpenAI-compatible LM Studio/OpenRouter connector. Model output is untrusted until compiled, and neither the CLI nor UI promotes canonical content.
+The tuning slice exposes three existing light-weaver constants—growth, maintenance and light response—as typed bounded candidate values while keeping provider mean light frozen. `TuningSpec`, candidate, evaluation and model-attempt evidence are content-addressed. Every candidate passes all hard validity checks before its Fitness Vector is interpreted; calibration and held-out seeds are distinct, and Pareto comparison preserves trade-offs rather than hiding them in one reward. The browser offers a human control surface, while `npm run tune --` emits and accepts JSON for numerical tools or an optional OpenAI-compatible LM Studio/OpenRouter connector. A model run is capped at one to six attempts, records a hash-linked trail, can fall back between declared response formats, and receives only calibration-seed feedback. Held-out results are withheld until review. Model output is untrusted until compiled, and neither the CLI nor UI promotes canonical content.
 
 Performance is split honestly. Release qualification records deterministic structural work—361 snapshots, four peak processed populations, 1,444 population-days, 1,960 accounting transactions and about 1.59M serialized characters—against seven authored browser limits. **Measure this device** optionally times the reference history and nine-case map locally, recording the benchmark version, exact workload and browser context only in the page. Those milliseconds never enter seeded results or hashes and are not sent or persisted. The app does not yet estimate a maximum population count because the present engine processes four authored guilds; a defensible ceiling needs a variable-node benchmark across declared device tiers.
 
@@ -62,10 +62,10 @@ Machine-readable tuning examples:
 npm run tune -- template
 npm run tune -- baseline calibration
 npm run tune -- evaluate candidate.json release
-EVOLUTION_TUNER_BASE_URL=http://localhost:1234/v1 EVOLUTION_TUNER_MODEL=google/gemma-4-26b-a4b npm run tune -- model
+EVOLUTION_TUNER_BASE_URL=http://localhost:1234/v1 EVOLUTION_TUNER_MODEL=google/gemma-4-31b npm run tune -- model 3
 ```
 
-For OpenRouter, set the same base URL/model variables, `EVOLUTION_TUNER_ENDPOINT_KIND=remote` and `EVOLUTION_TUNER_API_KEY`. The key is read from the process environment and is never printed or stored by the harness.
+For OpenRouter, set the same base URL/model variables, `EVOLUTION_TUNER_ENDPOINT_KIND=remote` and `EVOLUTION_TUNER_API_KEY`. `EVOLUTION_TUNER_OUTPUT_MODES` can declare a comma-separated order such as `json-schema,json-object,text`; LM Studio defaults to the modes it currently accepts. The key is read from the process environment and is never printed or stored by the harness.
 
 ## Repository map
 
@@ -80,7 +80,7 @@ For OpenRouter, set the same base URL/model variables, `EVOLUTION_TUNER_ENDPOINT
 - `src/lib/contracts` — versioned external compatibility contracts and pinned generated fixtures.
 - `src/lib/core` — deterministic framework-neutral simulation code, including the transactional accounting authority.
 - `src/lib/evaluation` — domain-neutral evaluation-profile compilation, thresholds, gate execution and family contracts.
-- `src/lib/calibration` — immutable tuning specs/candidates/evaluations, Pareto comparison, attempt evidence and the OpenAI-compatible proposal boundary.
+- `src/lib/calibration` — immutable tuning specs/candidates/evaluations, Pareto comparison, attempt evidence and the bounded OpenAI-compatible revision boundary.
 - `src/lib/analysis` — microbial observations, paired metrics/causal steps, response-family, qualification and performance adapters.
 - `src/lib/help` — framework-neutral cumulative help content and isolated concept-demo projections.
 - `src/lib/modes` — single typed authority for route, lifecycle and per-mode release metadata.
@@ -102,7 +102,7 @@ The current comparison and every response-map case are real branches from one co
 
 The current workload budget is an early-warning guardrail, not a device-capacity certification. Local benchmark labels apply only to the browser that ran them. Population limits remain unknown until the engine can exercise a variable number of aggregate nodes under repeatable synthetic loads.
 
-The tuning harness measures consistency against authored engineering objectives; it is not Bayesian inference, biological parameter estimation or scientific validation. Its five named seeds are deliberately small fixtures. Rejected proposals and model-attempt evidence can be retained by callers, but governed candidate archives and promotion workflows remain future work.
+The tuning harness measures consistency against authored engineering objectives; it is not Bayesian inference, biological parameter estimation or scientific validation. Its five named seeds are deliberately small fixtures. In the first local trial, a 31B model produced valid improving candidates while a 26B model failed to stay inside the JSON contract at the same budget; this is one connector observation, not a universal model ranking. More importantly, the successful model repeatedly lowered the cost-free light-response constant and thereby exposed a missing construction/maintenance trade-off in the flask objective. No candidate was promoted. Rejected proposals and model-attempt evidence can be retained by callers, but governed candidate archives and promotion workflows remain future work.
 
 ## Licence
 

@@ -11,6 +11,9 @@ export interface TuningModelAttemptInput {
   promptHash: string;
   response?: TuningModelObservation;
   assessment?: TuningCandidateAssessment;
+  attemptNumber?: number;
+  responseMode?: TuningModelObservation['responseMode'];
+  previousAttemptEvidenceHash?: string;
   schemaValid: boolean;
   candidateAccepted: boolean;
   rejectionReason?: string;
@@ -28,17 +31,24 @@ export function recordTuningModelAttempt(input: TuningModelAttemptInput): Tuning
   if (input.candidateAccepted && !input.assessment) {
     throw new Error('Accepted model attempts require candidate evaluation evidence.');
   }
+  const attemptNumber = input.attemptNumber ?? 1;
+  if (!Number.isInteger(attemptNumber) || attemptNumber < 1) {
+    throw new Error('Model attempt number must be a positive integer.');
+  }
   if (input.repeatedMistakes?.some((mistake) => !mistake.trim())) {
     throw new Error('Repeated-mistake tags must not be blank.');
   }
   const assessment = input.assessment;
   const repeatedMistakes = [...new Set(input.repeatedMistakes ?? [])].sort();
   const canonicalEvidence = {
+    attemptNumber,
     providerId: input.endpoint.providerId,
     endpointKind: input.endpoint.endpointKind,
     requestedModelId: input.endpoint.modelId,
     returnedModelId: input.response?.returnedModelId,
+    responseMode: input.response?.responseMode ?? input.responseMode ?? 'json-schema',
     promptHash: input.promptHash,
+    previousAttemptEvidenceHash: input.previousAttemptEvidenceHash,
     responseHash: input.response?.responseHash,
     schemaValid: input.schemaValid,
     candidateAccepted: input.candidateAccepted,
@@ -54,7 +64,7 @@ export function recordTuningModelAttempt(input: TuningModelAttemptInput): Tuning
       : undefined
   };
   return {
-    schemaVersion: 'evolution-model-attempt/0.1',
+    schemaVersion: 'evolution-model-attempt/0.2',
     ...canonicalEvidence,
     usage: input.response?.usage ?? {},
     elapsedMilliseconds: input.response?.elapsedMilliseconds ?? input.elapsedMilliseconds ?? 0,

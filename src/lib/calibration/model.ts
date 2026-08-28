@@ -3,20 +3,25 @@ import type {
   CandidateEvaluationRecord,
   CompiledTuningSpec,
   OpenAICompatibleEndpoint,
+  StructuredOutputMode,
   TuningCandidateProposal,
   TuningModelObservation,
   TuningModelResponse
 } from './types';
 
 export interface TuningPromptMessage {
-  role: 'system' | 'user';
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
 export type FetchLike = (input: string, init: RequestInit) => Promise<Pick<Response, 'ok' | 'status' | 'text'>>;
 
 export class TuningModelRequestError extends Error {
-  constructor(message: string, readonly observation: TuningModelObservation) {
+  constructor(
+    message: string,
+    readonly observation: TuningModelObservation,
+    readonly rawContent?: string
+  ) {
     super(message);
     this.name = 'TuningModelRequestError';
   }
@@ -122,7 +127,8 @@ export async function requestTuningProposal(
   endpoint: OpenAICompatibleEndpoint,
   messages: readonly TuningPromptMessage[],
   fetcher: FetchLike = fetch,
-  now: () => number = () => performance.now()
+  now: () => number = () => performance.now(),
+  responseMode: StructuredOutputMode = 'json-schema'
 ): Promise<TuningModelResponse> {
   if (!/^https?:\/\//.test(endpoint.baseUrl)) throw new Error('Model endpoint baseUrl must use http or https.');
   if (!endpoint.providerId.trim() || !endpoint.modelId.trim()) throw new Error('Model endpoint requires provider and model identity.');
@@ -143,18 +149,20 @@ export async function requestTuningProposal(
       temperature: endpoint.temperature ?? 0,
       max_tokens: endpoint.maxTokens ?? 400,
       ...(endpoint.seed === undefined ? {} : { seed: endpoint.seed }),
-      ...(endpoint.jsonMode === false
+      ...(endpoint.jsonMode === false || responseMode === 'text'
         ? {}
-        : {
-            response_format: {
-              type: 'json_schema',
-              json_schema: {
-                name: 'evolution_tuning_candidate',
-                strict: true,
-                schema: proposalJsonSchemaFromMessages(messages)
+        : responseMode === 'json-object'
+          ? { response_format: { type: 'json_object' } }
+          : {
+              response_format: {
+                type: 'json_schema',
+                json_schema: {
+                  name: 'evolution_tuning_candidate',
+                  strict: true,
+                  schema: proposalJsonSchemaFromMessages(messages)
+                }
               }
-            }
-          })
+            })
     })
   });
   const raw = await response.text();
@@ -163,6 +171,7 @@ export async function requestTuningProposal(
     providerId: endpoint.providerId,
     endpointKind: endpoint.endpointKind,
     modelId: endpoint.modelId,
+    responseMode,
     promptHash,
     responseHash: stableChecksum('tuning-model-response-raw/v1', raw),
     usage: {},
@@ -204,7 +213,8 @@ export async function requestTuningProposal(
   } catch (error) {
     throw new TuningModelRequestError(
       error instanceof Error ? error.message : String(error),
-      { ...observation, responseHash: stableChecksum('tuning-model-response-raw/v1', content) }
+      { ...observation, responseHash: stableChecksum('tuning-model-response-raw/v1', content) },
+      content
     );
   }
   return {

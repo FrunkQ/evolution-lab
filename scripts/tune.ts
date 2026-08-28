@@ -2,9 +2,7 @@ import { readFile } from 'node:fs/promises';
 import {
   compileTuningCandidate,
   createTuningPrompt,
-  recordTuningModelAttempt,
-  requestTuningProposal,
-  TuningModelRequestError
+  runTuningModelLoop
 } from '../src/lib/calibration/index.ts';
 import {
   assessMicrobialTuningCandidate,
@@ -14,9 +12,9 @@ import {
   MICROBIAL_BASELINE_CANDIDATE,
   MICROBIAL_TUNING_SPEC
 } from '../src/lib/analysis/microbialTuning.ts';
-import { stableChecksum } from '../src/lib/core/index.ts';
 import type {
   OpenAICompatibleEndpoint,
+  StructuredOutputMode,
   TuningCandidateDefinition,
   TuningSuiteId
 } from '../src/lib/calibration/index.ts';
@@ -44,8 +42,14 @@ async function readCandidate(path: string) {
 }
 
 function endpointFromEnvironment(): OpenAICompatibleEndpoint {
+  const providerId = process.env.EVOLUTION_TUNER_PROVIDER_ID ?? 'lm-studio';
+  const defaultOutputModes = providerId === 'lm-studio' ? 'json-schema,text' : 'json-schema,json-object,text';
+  const outputModes = (process.env.EVOLUTION_TUNER_OUTPUT_MODES ?? defaultOutputModes)
+    .split(',')
+    .map((mode) => mode.trim())
+    .filter(Boolean) as StructuredOutputMode[];
   return {
-    providerId: process.env.EVOLUTION_TUNER_PROVIDER_ID ?? 'lm-studio',
+    providerId,
     endpointKind: process.env.EVOLUTION_TUNER_ENDPOINT_KIND === 'remote' ? 'remote' : 'local',
     baseUrl: process.env.EVOLUTION_TUNER_BASE_URL ?? 'http://localhost:1234/v1',
     modelId: process.env.EVOLUTION_TUNER_MODEL ?? 'google/gemma-4-26b-a4b',
@@ -53,7 +57,26 @@ function endpointFromEnvironment(): OpenAICompatibleEndpoint {
     temperature: 0,
     seed: 104729,
     jsonMode: true,
-    maxTokens: Number(process.env.EVOLUTION_TUNER_MAX_TOKENS ?? 400)
+    maxTokens: Number(process.env.EVOLUTION_TUNER_MAX_TOKENS ?? 900),
+    outputModes
+  };
+}
+
+function summarizeAssessment(assessment: Awaited<ReturnType<typeof assessMicrobialTuningCandidate>>) {
+  return {
+    candidate: assessment.candidate,
+    calibration: {
+      evaluationHash: assessment.calibration.hash,
+      valid: assessment.calibration.valid,
+      relation: assessment.calibrationComparison.relation,
+      deltas: assessment.calibrationComparison.deltas
+    },
+    heldOut: {
+      evaluationHash: assessment.heldOut.hash,
+      valid: assessment.heldOut.valid,
+      relation: assessment.heldOutComparison.relation,
+      deltas: assessment.heldOutComparison.deltas
+    }
   };
 }
 
@@ -81,74 +104,51 @@ async function run(command: Command, args: string[]) {
   const endpoint = endpointFromEnvironment();
   const baseline = evaluateMicrobialTuningCandidate(MICROBIAL_BASELINE_CANDIDATE, 'calibration');
   const messages = createTuningPrompt(MICROBIAL_TUNING_SPEC, baseline);
-  const promptHash = stableChecksum('tuning-model-prompt/v1', messages);
-  const started = performance.now();
-  let response;
-  try {
-    response = await requestTuningProposal(endpoint, messages);
-  } catch (error) {
-    const observation = error instanceof TuningModelRequestError ? error.observation : undefined;
-    const attempt = recordTuningModelAttempt({
-      endpoint,
-      promptHash,
-      ...(observation ? { response: observation } : {}),
-      schemaValid: false,
-      candidateAccepted: false,
-      rejectionReason: error instanceof Error ? error.message : String(error),
-      repeatedMistakes: ['non-json-or-schema-invalid-response'],
-      elapsedMilliseconds: performance.now() - started
-    });
-    output({ ok: false, attempt });
-    process.exitCode = 2;
-    return;
-  }
-  let candidate;
-  try {
-    candidate = createMicrobialTuningCandidate(
-      response.proposal.changes,
-      response.proposal.hypothesis,
-      {
-        kind: endpoint.endpointKind === 'local' ? 'local-llm' : 'remote-llm',
-        id: `${endpoint.providerId}/${endpoint.modelId}`.toLowerCase().replace(/[^a-z0-9/-]+/g, '-'),
-        version: 'openai-chat-completions/1'
-      },
-      `candidate/model/${endpoint.modelId}`.toLowerCase().replace(/[^a-z0-9/-]+/g, '-')
-    );
-  } catch (error) {
-    const attempt = recordTuningModelAttempt({
-      endpoint,
-      promptHash,
-      response,
-      schemaValid: true,
-      candidateAccepted: false,
-      rejectionReason: error instanceof Error ? error.message : String(error)
-    });
-    output({ ok: false, proposal: response.proposal, attempt });
-    process.exitCode = 2;
-    return;
-  }
-  const assessment = assessMicrobialTuningCandidate(candidate);
-  const attempt = recordTuningModelAttempt({
+  const requestedAttempts = Number(args[0] ?? process.env.EVOLUTION_TUNER_MAX_ATTEMPTS ?? 3);
+  const result = await runTuningModelLoop(
+    MICROBIAL_TUNING_SPEC,
     endpoint,
-    promptHash,
-    response,
-    assessment,
-    schemaValid: true,
-    candidateAccepted: true
+    messages,
+    (proposal, context) => {
+      const candidate = createMicrobialTuningCandidate(
+        proposal.changes,
+        proposal.hypothesis,
+        {
+          kind: endpoint.endpointKind === 'local' ? 'local-llm' : 'remote-llm',
+          id: `${endpoint.providerId}/${endpoint.modelId}`.toLowerCase().replace(/[^a-z0-9/-]+/g, '-'),
+          version: 'openai-chat-completions/1'
+        },
+        `candidate/model/${endpoint.modelId}/attempt-${context.attemptNumber}`.toLowerCase().replace(/[^a-z0-9/-]+/g, '-')
+      );
+      const assessment = assessMicrobialTuningCandidate(candidate);
+      return assessment;
+    },
+    { maxAttempts: requestedAttempts }
+  );
+  output({
+    schemaVersion: result.schemaVersion,
+    model: result.model,
+    maxAttempts: result.maxAttempts,
+    exhaustedWithoutValidCandidate: result.exhaustedWithoutValidCandidate,
+    attempts: result.attempts,
+    accepted: result.accepted.map(summarizeAssessment)
   });
-  output({ attempt, proposal: response.proposal, assessment });
+  if (result.exhaustedWithoutValidCandidate) process.exitCode = 2;
 }
 
 const command = process.argv[2] as Command | undefined;
 if (!command || !commands.includes(command)) {
   output({
-    error: 'Usage: npm run tune -- <template|baseline [suite]|evaluate file [suite]|model>',
+    error: 'Usage: npm run tune -- <template|baseline [suite]|evaluate file [suite]|model [maxAttempts]>',
     environment: [
       'EVOLUTION_TUNER_BASE_URL',
       'EVOLUTION_TUNER_MODEL',
       'EVOLUTION_TUNER_PROVIDER_ID',
       'EVOLUTION_TUNER_ENDPOINT_KIND',
-      'EVOLUTION_TUNER_API_KEY (read only; never printed)'
+      'EVOLUTION_TUNER_API_KEY (read only; never printed)',
+      'EVOLUTION_TUNER_OUTPUT_MODES (json-schema,json-object,text)',
+      'EVOLUTION_TUNER_MAX_TOKENS',
+      'EVOLUTION_TUNER_MAX_ATTEMPTS (1-6)'
     ]
   });
   process.exitCode = 1;
