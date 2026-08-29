@@ -55,4 +55,12 @@ describe('experiment catalogue', () => {
       'Reference experiments require a manifest hash.'
     ]));
   });
+
+  it('keeps Alien Lake visibly draft until its provider and checkpoints are promoted', () => {
+    const lake = EXPERIMENTS.find(({ id }) => id === 'lab/alien-lake-001');
+    expect(lake).toMatchObject({ status: 'draft' });
+    expect(lake?.manifestHash).toBeUndefined();
+    expect(lake?.checkpoints.every(({ expectedHash }) => expectedHash === undefined)).toBe(true);
+    expect(validateExperimentCatalogue(EXPERIMENTS)).toEqual([]);
+  });
 });

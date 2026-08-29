@@ -45,21 +45,21 @@ const modes: InstalledMode[] = [
     summary:
       'An Earth-like microbial starting point used to explore plausible life beyond Earth through resource flows, environmental forcing and recorded events.',
     release: {
-      version: '0.9.1',
-      lastUpdated: '2026-08-28',
+      version: '1.0.0',
+      lastUpdated: '2026-08-29',
       lifecycle: 'live',
       statusLabel: 'Live prototype',
-      currentFocus: 'Bounded model revision with held-out deterministic review'
+      currentFocus: 'Alien Lake spectral ecology and exact retained-state scale recursion'
     },
     composition: {
       scenarioIdentity: MICROBIAL_SCENARIO_IDENTITY,
       providerIdentity: 'scripted-microbial-film@0.4.0',
       domainContentIdentity: 'evolution-lab/base-microbial@0.1.0',
-      presentationIdentity: 'evolution-lab/exobiology-prototype@0.8.0'
+      presentationIdentity: 'evolution-lab/exobiology-prototype@1.0.0'
     },
     intendedInputs: ['Master seed', 'Typed physical-input fixture', 'Scripted daily light and resource inflows'],
     intendedOutputs: ['Aggregate lineage biomass', 'Resource ledgers', 'Recorded causal events', 'Paired long-shadow feedback'],
-    nextStep: 'Exercise the completed candidate boundary with the Alien Lake spectral and scale-recursion integration experiment.'
+    nextStep: 'Promote Alien Lake only after pinned checkpoint qualification, then replace exact retained-state wrapping with a bounded coarse model.'
   },
   {
     id: 'firstlife',

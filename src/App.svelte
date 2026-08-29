@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import EventHistory from './lib/components/EventHistory.svelte';
+  import AlienLakeExperiment from './lib/components/AlienLakeExperiment.svelte';
   import EvaluationResponseMap from './lib/components/EvaluationResponseMap.svelte';
   import ExperimentFeedback from './lib/components/ExperimentFeedback.svelte';
   import ExperimentScene from './lib/components/ExperimentScene.svelte';
@@ -17,9 +18,10 @@
   import ResourceField from './lib/components/ResourceField.svelte';
   import RuleWorkshop from './lib/components/RuleWorkshop.svelte';
   import TuningHarness from './lib/components/TuningHarness.svelte';
-  import { assessMicrobialTuningCandidate, benchmarkMicrobialReferenceDevice, createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily, createMicrobialTuningCandidate, MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY, MICROBIAL_TUNING_SPEC } from './lib/analysis';
+  import { ALIEN_LAKE_DEFAULT_SEED, ALIEN_LAKE_DEFAULT_SPECTRUM, ALIEN_LAKE_SCHEMA, ALIEN_LAKE_SPECTRUM_OPTIONS, assessMicrobialTuningCandidate, benchmarkMicrobialReferenceDevice, createAlienLakeExperiment, createMicrobialShadowEvaluation, createMicrobialShadowResponseFamily, createMicrobialTuningCandidate, MICROBIAL_REFERENCE_QUALIFICATION_SUMMARY, MICROBIAL_TUNING_SPEC } from './lib/analysis';
   import type { TuningParameterChange } from './lib/calibration';
   import { DEFAULT_CONFIG } from './lib/core';
+  import type { LakePatchId } from './lib/analysis';
   import type { SimulationConfig, TreeLens } from './lib/core';
   import {
     DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE,
@@ -35,10 +37,11 @@
   import type { EvolutionExperiment } from './lib/experiments';
   import { createLongShadowHelpTopic } from './lib/help';
   import { INSTALLED_MODES, resolveRoute } from './lib/modes/catalog';
-  import { MICROBIAL_SCENE_VIEW } from './lib/projections/scene';
+  import { ALIEN_LAKE_SCENE_VIEW, MICROBIAL_SCENE_VIEW } from './lib/projections/scene';
   import {
     projectMicrobialHistories,
     projectMicrobialShadowResponse,
+    projectAlienLake,
     RESERVED_RUN_COLORS,
     validateTemporalSeriesStyles,
     type TemporalSeriesStyle
@@ -48,6 +51,7 @@
   import { ENGINE_VERSION, LAB_VERSION, RUN_SCHEMA_VERSION } from './lib/version';
 
   type LabArea = 'simulation' | 'inputs' | 'rules' | 'tuning' | 'experiments';
+  type ExobiologyExperiment = 'microbial-flask' | 'alien-lake';
 
   const route = resolveRoute(window.location.pathname);
   const activeMode = route.kind === 'mode' ? route.mode : null;
@@ -74,12 +78,17 @@
   if (seriesStyleErrors.length) throw new Error(seriesStyleErrors.join(' '));
 
   let labArea = $state<LabArea>('simulation');
+  let activeExperiment = $state<ExobiologyExperiment>('microbial-flask');
   let seed = $state('fish-and-strawberries');
   let activeConfig = $state<SimulationConfig>(referenceConfig);
   let inputDraft = $state<ProviderFixtureDraft>(createExobiologyProviderDraft());
   let activeInputHash = $state<string | undefined>(DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.hash);
   let evaluationBundle = $state(createMicrobialShadowEvaluation('fish-and-strawberries', referenceConfig));
   let responseFamily = $state(createMicrobialShadowResponseFamily('fish-and-strawberries', referenceConfig));
+  let lakeSpectrumId = $state(ALIEN_LAKE_DEFAULT_SPECTRUM);
+  let lakeExperiment = $state.raw(createAlienLakeExperiment(ALIEN_LAKE_DEFAULT_SEED, ALIEN_LAKE_DEFAULT_SPECTRUM));
+  let lakeTick = $state(96);
+  let lakePatchId = $state<LakePatchId>('lake/mixed-water');
   const run = $derived(evaluationBundle.run);
   let tick = $state(176);
   let selectedId = $state('light-weavers');
@@ -100,6 +109,7 @@
   const visibleEvents = $derived(run.events.filter((event) => event.tick <= tick).slice(-5).reverse());
   const temporalProjections = $derived(projectMicrobialHistories(run, evaluationBundle.comparisonRun));
   const responseView = $derived(projectMicrobialShadowResponse(responseFamily));
+  const lakeView = $derived(projectAlienLake(lakeExperiment, lakeTick, lakePatchId));
   const helpTopic = $derived(createLongShadowHelpTopic(evaluationBundle.evaluation));
   const inputIssues = $derived(validateExobiologyProviderFixture(inputDraft, DEFAULT_CONFIG.duration));
   const compiledInput = $derived(inputIssues.length === 0 ? compileProviderFixture(EXOBIOLOGY_PROVIDER_REQUIREMENTS, inputDraft) : null);
@@ -118,7 +128,7 @@
         : route.mode.id !== 'biology'
           ? `${route.mode.title}, honestly staged.`
           : labArea === 'simulation'
-            ? 'Make a living system from simple rules.'
+            ? activeExperiment === 'alien-lake' ? 'Let a lake find usable light.' : 'Make a living system from simple rules.'
             : labArea === 'inputs'
               ? 'Define the world before it evolves.'
               : labArea === 'rules'
@@ -135,7 +145,9 @@
         : route.mode.id !== 'biology'
           ? route.mode.summary
           : labArea === 'simulation'
-            ? 'One microbial film. Four authored lineages. A resource network with a stored, inspectable history.'
+            ? activeExperiment === 'alien-lake'
+              ? 'Three connected habitats. Pinned spectral input. Costly responses, closed matter and an exact scale-recursion proof.'
+              : 'One microbial film. Four authored lineages. A resource network with a stored, inspectable history.'
             : labArea === 'inputs'
               ? 'Create, validate and inject a pinned physical dataset through the same boundary a future provider must satisfy.'
               : labArea === 'rules'
@@ -148,14 +160,49 @@
   function rerun() {
     stopPlayback();
     const nextSeed = seed.trim() || 'unnamed-world';
+    if (activeExperiment === 'alien-lake') {
+      lakeExperiment = createAlienLakeExperiment(nextSeed, lakeSpectrumId);
+      lakeTick = 96;
+      return;
+    }
     evaluationBundle = createMicrobialShadowEvaluation(nextSeed, activeConfig);
     responseFamily = createMicrobialShadowResponseFamily(nextSeed, activeConfig);
     tick = 176;
     selectedId = 'light-weavers';
   }
 
+  function selectExperiment(experiment: ExobiologyExperiment) {
+    stopPlayback();
+    activeExperiment = experiment;
+    if (experiment === 'alien-lake') {
+      seed = ALIEN_LAKE_DEFAULT_SEED;
+      lakeSpectrumId = ALIEN_LAKE_DEFAULT_SPECTRUM;
+      lakeExperiment = createAlienLakeExperiment(seed, lakeSpectrumId);
+      lakeTick = 96;
+      lakePatchId = 'lake/mixed-water';
+    } else {
+      seed = 'fish-and-strawberries';
+      rerun();
+    }
+  }
+
+  function selectLakeSpectrum(spectrumId: string) {
+    stopPlayback();
+    lakeSpectrumId = spectrumId;
+    lakeExperiment = createAlienLakeExperiment(seed.trim() || ALIEN_LAKE_DEFAULT_SEED, spectrumId);
+  }
+
   function runExperiment(experiment: EvolutionExperiment, selectedTick = 176) {
     stopPlayback();
+    if (experiment.id === 'lab/alien-lake-001') {
+      activeExperiment = 'alien-lake';
+      seed = experiment.masterSeed;
+      lakeExperiment = createAlienLakeExperiment(seed, lakeSpectrumId);
+      lakeTick = Math.min(selectedTick, lakeExperiment.run.snapshots.length - 1);
+      labArea = 'simulation';
+      return;
+    }
+    activeExperiment = 'microbial-flask';
     seed = experiment.masterSeed;
     activeConfig = referenceConfig;
     activeInputHash = DEFAULT_EXOBIOLOGY_PROVIDER_FIXTURE.hash;
@@ -260,11 +307,11 @@
         <p>{headerSummary}</p>
         <ReleaseIdentity
           labVersion={LAB_VERSION}
-          engineVersion={activeMode?.id === 'biology' ? run.manifest.engineVersion : ENGINE_VERSION}
-          schemaVersion={activeMode?.id === 'biology' ? run.manifest.schemaVersion : RUN_SCHEMA_VERSION}
-          providerIdentity={activeMode?.id === 'biology' ? run.manifest.environmentProvider : 'not connected'}
+          engineVersion={activeMode?.id === 'biology' ? activeExperiment === 'alien-lake' ? ENGINE_VERSION : run.manifest.engineVersion : ENGINE_VERSION}
+          schemaVersion={activeMode?.id === 'biology' ? activeExperiment === 'alien-lake' ? ALIEN_LAKE_SCHEMA : run.manifest.schemaVersion : RUN_SCHEMA_VERSION}
+          providerIdentity={activeMode?.id === 'biology' ? activeExperiment === 'alien-lake' ? lakeExperiment.run.providerReference : run.manifest.environmentProvider : 'not connected'}
           modeIdentity={activeMode ? `${activeMode.id}@${activeMode.release.version}` : 'catalogue'}
-          scenarioIdentity={activeMode ? activeMode.composition.scenarioIdentity ?? 'not installed' : 'none selected'}
+          scenarioIdentity={activeMode ? activeMode.id === 'biology' && activeExperiment === 'alien-lake' ? 'lab/alien-lake-001@0.1.0 · draft' : activeMode.composition.scenarioIdentity ?? 'not installed' : 'none selected'}
         />
       </div>
     </div>
@@ -317,7 +364,23 @@
     </nav>
 
     {#if labArea === 'simulation'}
-      <ExperimentScene view={MICROBIAL_SCENE_VIEW} />
+      <nav class="experiment-switcher" aria-label="Exobiology experiments">
+        <div><span>Active experiment</span><small>Two test beds · one engine</small></div>
+        <button class:active={activeExperiment === 'microbial-flask'} onclick={() => selectExperiment('microbial-flask')}><strong>Microbial Flask</strong><span>Reference · evaluation controls</span></button>
+        <button class:active={activeExperiment === 'alien-lake'} onclick={() => selectExperiment('alien-lake')}><strong>Alien Lake</strong><span>Draft · spectra + scale recursion</span></button>
+      </nav>
+
+      <ExperimentScene view={activeExperiment === 'alien-lake' ? ALIEN_LAKE_SCENE_VIEW : MICROBIAL_SCENE_VIEW} />
+
+      {#if activeExperiment === 'alien-lake'}
+        <AlienLakeExperiment
+          view={lakeView}
+          spectrumOptions={ALIEN_LAKE_SPECTRUM_OPTIONS}
+          ontick={(nextTick) => (lakeTick = nextTick)}
+          onpatch={(patchId) => (lakePatchId = patchId)}
+          onspectrum={selectLakeSpectrum}
+        />
+      {:else}
 
       <section class="control-ribbon">
         <div class="control-group">
@@ -355,6 +418,7 @@
         <ExperimentFeedback evaluation={evaluationBundle.evaluation} onselect={setTick} />
         <HelpPanel topic={helpTopic} />
       </section>
+      {/if}
 
     {:else if labArea === 'inputs'}
       <ProviderInputHarness profile={EXOBIOLOGY_PROVIDER_REQUIREMENTS} fixture={inputDraft} compiled={compiledInput} issues={inputIssues} activeHash={activeInputHash} onchange={(fixture) => (inputDraft = fixture)} oninject={injectProviderFixture} onreset={resetProviderFixture} onexport={exportProviderFixture} onimport={importProviderFixture} />
@@ -376,7 +440,7 @@
           : route.mode.release.lifecycle === 'scaffold'
             ? `${route.mode.title}: route and experiment brief only`
             : labArea === 'simulation'
-              ? 'Prototype milestone: microbial flask'
+              ? activeExperiment === 'alien-lake' ? 'Draft integration milestone: Alien Lake' : 'Reference milestone: microbial flask'
               : labArea === 'inputs'
                 ? 'Provider boundary: typed, validated, content-addressed datasets'
                 : labArea === 'rules'
@@ -390,6 +454,10 @@
 </main>
 
 <style>
+  .experiment-switcher { display: grid; grid-template-columns: minmax(170px,.65fr) repeat(2,minmax(200px,1fr)); gap: .35rem; margin-bottom: .8rem; padding: .35rem; background: #0d0f14; border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+  .experiment-switcher > div { padding: .45rem .6rem; } .experiment-switcher > div span,.experiment-switcher > div small { display: block; } .experiment-switcher > div span { color: #72d6a0; font-size: .57rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; } .experiment-switcher > div small { margin-top: .18rem; color: var(--text-faint); font-size: .55rem; }
+  .experiment-switcher button { display: flex; justify-content: space-between; gap: .6rem; align-items: center; padding: .55rem .7rem; text-align: left; background: transparent; border-color: transparent; border-radius: 6px; }
+  .experiment-switcher button strong,.experiment-switcher button span { display: block; } .experiment-switcher button strong { font-size: .68rem; } .experiment-switcher button span { color: var(--text-faint); font-size: .54rem; } .experiment-switcher button.active { background: #26302f; border-color: #3d5149; box-shadow: inset 0 -2px #68e0a3; }
   .product-nav { display: flex; gap: 0.35rem; margin-bottom: 0.8rem; padding: 0.28rem; overflow-x: auto; background: #0d0f14; border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
   .product-nav a { display: inline-flex; align-items: center; gap: 0.42rem; padding: 0.52rem 0.7rem; flex: 0 0 auto; color: var(--text-muted); border: 1px solid transparent; border-radius: var(--radius-sm); font-size: 0.69rem; font-weight: 750; text-decoration: none; }
   .product-nav a:hover { color: white; background: #20232b; }
@@ -403,5 +471,6 @@
   .not-found a { display: inline-block; margin-top: 0.7rem; padding: 0.65rem 0.8rem; color: white; background: var(--accent); border-radius: var(--radius-md); font-size: 0.72rem; font-weight: 800; text-decoration: none; }
   .feedback-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.75fr); gap: 0.8rem; margin-top: 0.8rem; }
   @media (max-width: 1040px) { .feedback-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .experiment-switcher { grid-template-columns: 1fr; } .experiment-switcher > div { display: none; } }
   @media (max-width: 620px) { .product-nav { margin-right: -0.25rem; margin-left: -0.25rem; } }
 </style>

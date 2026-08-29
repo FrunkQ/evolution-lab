@@ -97,7 +97,15 @@ During early development a scripted planet harness supplies timeline frames. Lat
 
 The harness should eventually be generated from domain-declared input requirements rather than maintained as a second hand-written API. A pack says which typed, unit-bearing provider fields it needs, their shape, bounds, cadence and validity domain. The Lab can render suitable fixture controls and freeze their output into a hashed dataset; an SSE adapter can satisfy the same declaration from physical history. This keeps interactive testing, imported datasets and coupled production runs on one boundary while allowing different domains to request different physics.
 
-For light-harvesting life, the physical input is ultimately a local spectral irradiance distribution and provider-resolved hazards. Evolved pigments are response curves over that field, not colour names: their absorbed energy, synthesis cost and reflected/transmitted signature create biological consequences and apparent colour. The provider remains authoritative for photon energy, heating, ionisation, pressure and phase. The present scalar light/shadow control is only the first small fixture exercising this direction.
+For light-harvesting life, the physical input is ultimately a local spectral irradiance distribution and provider-resolved hazards. Evolved pigments are response curves over that field, not colour names: their absorbed energy, synthesis cost and reflected/transmitted signature create biological consequences and apparent colour. The provider remains authoritative for photon energy, heating, ionisation, pressure and phase. The microbial reference still uses scalar light; the draft Alien Lake experiment is the first runtime consumer of the pinned spectral fixture.
+
+### Alien Lake integration proof
+
+Alien Lake is deliberately broader than the microbial flask without pretending to be a complete ecology. Three typed liquid-habitat nodes exchange material through authored neighbour links. A generic numeric-field evaluator applies bounded response bands to the provider spectrum and keeps incident, captured, accessible, returned and operating-cost quantities separate. The response mechanism is not a pigment class: another rulepack can apply it to prey size, sound frequency or any other compatible numeric field.
+
+The experiment closes the material ledger across nutrient, biomass and detritus in all three habitats. A daughter response branches through a named counter-addressed random draw, ensuring that inserting unrelated work cannot silently change it. Two explicit counterfactuals verify the seam in both directions: the same response sees different opportunity under a different provider field, and different responses see different opportunity under the same field.
+
+The sediment refuge also exercises the first honest precursor to recursive resolution. It enters an exact retained-state wrapper at day 120 and re-expands when a turbidity event arrives at day 168. An always-detailed control reaches the same final state and contract observables. This proves boundary identity, reversibility and deterministic re-expansion. Because every hidden member is still advanced, it does not reduce computation and is not yet adaptive coarse-graining or seeded backmapping.
 
 
 ## Shared user interface
@@ -158,8 +166,8 @@ A later technosphere engine can model culture, industry, AGI, autonomous machine
 ## Initial build sequence
 
 1. **Microbial flask:** producers, recyclers and grazers in one habitat.
-2. **Changing pond:** cycles, dormancy, plasticity, stress and recovery.
-3. **Connected habitats:** dispersal, barriers, refugia and divergence.
+2. **Alien Lake / changing pond:** spectral opportunity, costly response, cycles, stress and recovery.
+3. **Connected habitats:** dispersal, barriers, refugia, divergence and qualified coarse models.
 4. **Evolutionary exchange:** mutation supply, transfer, viruses, mutualism and trait loss.
 5. **Recursive individuality:** cooperation, conflict and higher-order nodes.
 6. **Living planet:** versioned environment, history, signature and UI contracts.

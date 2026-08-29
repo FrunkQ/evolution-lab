@@ -4,7 +4,7 @@ A browser-first laboratory for deterministic, explainable histories of evolving 
 
 > Evolution Lab is a browser-first, population-aggregate simulation framework whose state is a scale-recursive spatiotemporal multigraph; whose histories are deterministically replayable, event-sourced, checkpointed, and branchable; whose resolution adapts by coarse-graining stable intervals and deterministically refining interesting ones; whose epochs are named retrospectively from recorded causal facts; and whose content is instantiated just-in-time from keyed seeded distributions, authored as declarative configuration with AI assistance.
 
-That is the target architecture. The current `v0.10.1` public prototype is much smaller: one fixed-step deterministic exobiology experiment with daily snapshots, compact events, content-hashed exact checkpoints, a control/shadow fork, a nine-case response family and a bounded candidate-tuning harness. It does **not** yet implement a generic multigraph engine, a durable event-sourced store, adaptive resolution, retrospective epoch naming, just-in-time content generation or general AI-assisted pack authoring. Causal provenance remains a defining invariant; the implemented AI seam may propose strictly validated candidates within a small review loop, never act as runtime or promotion authority.
+That is the target architecture. The current `v0.11.0` public prototype is much smaller: a promoted microbial reference and a draft Alien Lake integration experiment, both fixed-step and deterministic. The lake adds a generic connected-habitat graph, unit-aware numeric-field response functions, named counter-addressed variation, closed material accounting and an exact retained-state wrapper. It does **not** yet implement a generic evolving multigraph runtime, a durable event-sourced store, compute-saving adaptive resolution, retrospective epoch naming, just-in-time content generation or general AI-assisted pack authoring. Causal provenance remains a defining invariant; the implemented AI seam may propose strictly validated candidates within a small review loop, never act as runtime or promotion authority.
 
 The Lab is for learning, exploration and challenge. Its aim is to be plausibly close to the relevant scientific thinking at the level it actually models, while exposing assumptions and omissions clearly enough to invite useful criticism. It is not evidence, prediction, calibration or scientific proof.
 
@@ -12,7 +12,7 @@ The Lab is for learning, exploration and challenge. Its aim is to be plausibly c
 
 The root route `/` is a recently-updated catalogue. It and direct route loads resolve the same version-controlled mode metadata:
 
-- `/exobiology` — the live microbial prototype, including a hashed reference experiment and checkpointed control/shadow analysis.
+- `/exobiology` — the live Exobiology workspace, with the hashed microbial reference and the draft Alien Lake spectral/scale-recursion experiment.
 - `/firstlife` — an honest experiment scaffold; no origin-of-life simulation is installed.
 - `/galaxy` — an honest domain-neutrality scaffold; no galaxy simulation is installed.
 
@@ -20,7 +20,7 @@ There is one application and one deployment. Modes are paths, not subdomains or 
 
 The Exobiology workspace has five permanent areas:
 
-- **Live experiment** — explore the current seeded microbial history.
+- **Live experiment** — switch between the microbial reference and Alien Lake without creating a second app or route.
 - **Physical Inputs** — create, validate, import/export and inject a content-hashed provider dataset from a reusable typed profile.
 - **Rule Workshop** — author and validate scalable declarative packs independently of the runtime and SSE.
 - **Tuning Harness** — propose one bounded mechanism change, validate it, run hard gates and compare its multi-objective behaviour on working and held-out seeds.
@@ -29,6 +29,8 @@ The Exobiology workspace has five permanent areas:
 The Physical Inputs harness is generated from the Exobiology provider-requirement profile rather than a hand-built form. It accepts scalar and spectral-curve data with units, bounds and provenance; can load or download JSON fixtures; and pins an injected fixture hash into the run manifest. Only controls explicitly labelled **Drives this experiment** affect the current aggregate equations. Temperature, pressure, gravity, radiation, chemical energy, liquid-medium availability, solvent activity and other recorded facts remain visible but do not falsely claim live mechanisms. The same harness can render another mode's profile, while a future SSE/System Lab adapter must satisfy this contract before it can stream or resolve richer data.
 
 The promoted microbial reference now starts from the exact default Physical Inputs fixture rather than hidden fallback values. A content-hashed qualification report checks the input identity, exact replay, four checkpoint hashes, paired-future integrity, all ten declared hard gates, all nine response cases, a deliberately changed input, five named seeds, structural workload and causal-history coverage. The Experiment Library shows its pinned 10/10 summary. This proves that the prototype framework is wired reproducibly; it does not prove that its biology is calibrated.
+
+Alien Lake is the next deliberately small integration proof. A pinned surface spectral fixture is filtered into three connected liquid habitats. Fictional response functions integrate capture over that field, separate incident, absorbed, accessible and returned power, and pay explicit construction, maintenance and repair costs. A seeded daughter shifts one response band by ±30 nm without changing unrelated random addresses. Growth, turnover, recycling and inter-habitat transport all pass through the generic material ledger. From day 120 the sediment refuge is exposed as one higher-order boundary with exact member state retained; a turbidity event re-expands it at day 168 and produces the same final hash as an always-detailed control. This proves reversible identity, not compute-saving coarse-graining. The experiment remains `draft`: its response functions and lake units are fictional and uncalibrated, and its checkpoints are not yet promoted reference hashes.
 
 The tuning slice exposes three existing light-weaver constants—growth, maintenance and light response—as typed bounded candidate values while keeping provider mean light frozen. `TuningSpec`, candidate, evaluation and model-attempt evidence are content-addressed. Every candidate passes all hard validity checks before its Fitness Vector is interpreted; calibration and held-out seeds are distinct, and Pareto comparison preserves trade-offs rather than hiding them in one reward. The browser offers a human control surface, while `npm run tune --` emits and accepts JSON for numerical tools or an optional OpenAI-compatible LM Studio/OpenRouter connector. A model run is capped at one to six attempts, records a hash-linked trail, can fall back between declared response formats, and receives only calibration-seed feedback. Held-out results are withheld until review. Model output is untrusted until compiled, and neither the CLI nor UI promotes canonical content.
 
@@ -78,10 +80,11 @@ For OpenRouter, set the same base URL/model variables, `EVOLUTION_TUNER_ENDPOINT
 - `docs/SSE_TIMELINE_REQUIREMENTS.md` — deterministic star/planet/evolution coupling contract.
 - `docs/RULEPACK_AND_LAB_ARCHITECTURE.md` — rulepack, modpack, experiment, artifact and authored-marker design.
 - `src/lib/contracts` — versioned external compatibility contracts and pinned generated fixtures.
-- `src/lib/core` — deterministic framework-neutral simulation code, including the transactional accounting authority.
+- `src/lib/core` — deterministic framework-neutral simulation code, including transactional accounting, generic habitat graphs and exact retained-state wrappers.
+- `src/lib/mechanisms` — generic unit-aware response-function compilation and evaluation over numeric fields.
 - `src/lib/evaluation` — domain-neutral evaluation-profile compilation, thresholds, gate execution and family contracts.
 - `src/lib/calibration` — immutable tuning specs/candidates/evaluations, Pareto comparison, attempt evidence and the bounded OpenAI-compatible revision boundary.
-- `src/lib/analysis` — microbial observations, paired metrics/causal steps, response-family, qualification and performance adapters.
+- `src/lib/analysis` — microbial evaluation adapters plus the Alien Lake domain integration over generic mechanisms.
 - `src/lib/help` — framework-neutral cumulative help content and isolated concept-demo projections.
 - `src/lib/modes` — single typed authority for route, lifecycle and per-mode release metadata.
 - `src/lib/projections` — framework-neutral temporal view contracts and history projections.
@@ -95,7 +98,7 @@ The project is separate from Star System Explorer. No SSE code or stores are imp
 
 ## Prototype limitations
 
-Rates and quantities currently use bounded experimental units and are not scientifically calibrated. The live microbial simulation still consumes scalar scripted light; its validated retained-light fraction is only a small precursor to a schema-driven physical-input harness. The SSE spectral fixture validates the future data seam but is not yet runtime wiring. Lineage colours remain authored prototype presentation data, not spectral adaptations; future pigment traits must consume unit-aware provider spectra rather than colour names. The lineage definitions are predefined; the engine demonstrates activation under ecological conditions rather than open-ended mutation.
+Rates and quantities currently use bounded experimental units and are not scientifically calibrated. The microbial reference still consumes scalar scripted light. Alien Lake consumes the pinned SSE spectral fixture, but its depth filtering, response bands and power-to-growth mapping are authored Lab mechanisms rather than provider-resolved lake physics or predicted alien pigments. Apparent presentation colour is still derived for explanation only; the engine reasons over numeric wavelength and power fields. The response families are predefined and one daughter receives a bounded seeded shift, so this is not yet open-ended mutation or molecular pigment evolution.
 
 The current comparison and every response-map case are real branches from one content-hashed checkpoint; the centre case verifies exact resume against the uninterrupted run. A versioned evaluation profile owns the thresholds and ten gate declarations, while the microbial adapter supplies observations. Every material change is now an ordered transaction: the evaluator independently recomputes postings, provider imports/exports, interval continuity and hidden adjustment debt. All ten gates run and pass for the promoted flask. This proves exact closure only in the declared `0.01 model-mass` unit; it is not calibrated SI chemistry, a complete useful-energy ledger or proof of provider-side physical conservation. “Recovered” remains a declared aggregate-biomass threshold, not proof that the pre-shadow ecological state or every lineage relationship was restored.
 

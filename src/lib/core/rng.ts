@@ -28,3 +28,12 @@ export function createRng(seed: string): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/** Order-independent draw addressed by seed, stable path and explicit counter. */
+export function randomAt(masterSeed: string, path: readonly string[], counter: number): number {
+  if (!masterSeed.trim() || !path.length || path.some((part) => !part.trim())) {
+    throw new Error('Addressed randomness requires a master seed and non-empty stable path.');
+  }
+  if (!Number.isInteger(counter) || counter < 0) throw new Error('Addressed randomness counter must be a non-negative integer.');
+  return hash32(deriveSeed(masterSeed, ...path, 'counter-v1', String(counter))) / 4294967296;
+}

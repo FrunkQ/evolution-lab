@@ -1,6 +1,6 @@
 {
   "name": "evolution-lab",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run --configLoader runner",
-    "qualify": "vitest run --configLoader runner src/lib/analysis/microbialQualification.spec.ts src/lib/analysis/microbialPerformance.spec.ts src/lib/analysis/microbialTuning.spec.ts",
+    "qualify": "vitest run --configLoader runner src/lib/analysis/microbialQualification.spec.ts src/lib/analysis/microbialPerformance.spec.ts src/lib/analysis/microbialTuning.spec.ts src/lib/analysis/alienLake.spec.ts",
     "tune": "tsx scripts/tune.ts",
     "test:watch": "vitest --configLoader runner"
   },

@@ -3,7 +3,7 @@
 > **Audience:** coding agents and maintainers.  
 > **Authority:** this file is the project’s canonical architectural context.  
 > **Status vocabulary:** `planned`, `prototype`, `implemented`, `deferred`, `authored-only`.  
-> **Last structural revision:** 2026-08-27.
+> **Last structural revision:** 2026-08-29.
 
 ## 0. Agent retrieval map
 
@@ -14,6 +14,8 @@ Use stable IDs to retrieve only the context relevant to a task.
 | Change simulation behaviour | `INV-*`, `LOOP-*`, `MOD-CORE`, `CTR-ENV`, `CTR-HISTORY` | `src/lib/core/` and its tests |
 | Change material accounting | `INV-DET`, `CTR-FLUX-ACCOUNTING`, `DEC-034`, `DEC-035` | `src/lib/core/accounting.ts`, simulation transaction sites, then core and paired-evaluation tests |
 | Add a domain primitive | `PRIM-*`, `INV-*`, `EXT-*` | `src/lib/core/types.ts` |
+| Add a numeric-field response mechanism | `INV-ENERGY`, `CTR-RESPONSE-FUNCTION`, `DEC-038` | `src/lib/mechanisms/responseFunction.ts` and its non-spectral tests |
+| Add connected habitats or wrapping | `PRIM-HABITAT`, `CTR-HABITAT-GRAPH`, `CTR-EXACT-WRAPPER`, `DEC-039`, `DEC-040` | `src/lib/core/habitatGraph.ts`, `src/lib/core/abstraction.ts`, then domain adapter |
 | Add or change UI | `MOD-UI`, `CTR-VIEW`, `UI-*` | `src/lib/components/`, then `src/App.svelte` |
 | Add or change run evaluation | `INV-LEGIBILITY`, `CTR-CHECKPOINT`, `CTR-EVALUATION-PROFILE`, `CTR-EVALUATION-FAMILY`, `CTR-EVALUATION-VIEW`, `DEC-026`, `DEC-028` | `src/lib/evaluation/` first, then the domain adapter in `src/lib/analysis/`, projection tests and renderer |
 | Add or change candidate tuning | `INV-DET`, `INV-LEGIBILITY`, `CTR-TUNING`, `DEC-036`, `DEC-037` | `src/lib/calibration/` contracts first, then `src/lib/analysis/microbialTuning.ts`, CLI and `TuningHarness.svelte` |
@@ -143,6 +145,7 @@ Composition is an additional relation used when a stable network wraps into a ce
 | ID | Module | Responsibility | Dependency rule | Status |
 |---|---|---|---|---|
 | `MOD-CORE` | `src/lib/core` | Pure deterministic types, seeded simulation, environment-provider harness, transactional model-mass accounting, history and description inputs | may depend only on plain TypeScript/data | prototype; accounting slice implemented |
+| `MOD-MECHANISMS` | `src/lib/mechanisms` | typed unit-aware response functions over compatible numeric fields, with explicit costs and returned contributions | plain TypeScript/data; no domain names, Svelte, browser or SSE imports | first generic response evaluator implemented |
 | `MOD-CHEM` | future `src/lib/chemistry` | solvents, stoichiometry, accessible gradients and compatibility | core contracts only | planned |
 | `MOD-ECOLOGY` | future core subdivision | populations, sparse resource network, habitats and disturbances | core + chemistry contracts | prototype embedded in `simulate.ts` |
 | `MOD-LINEAGE` | future core subdivision | variation, inheritance, split/merge/transfer and major transitions | core contracts | planned |
@@ -151,10 +154,10 @@ Composition is an additional relation used when a stable network wraps into a ce
 | `MOD-DESC` | `src/lib/core/describe.ts` | derive chemistry/ecology/story wording from facts | read-only core models | prototype |
 | `MOD-RULES` | `src/lib/rules` | rulepack types, validation, canonical checksum, compilation and indexes | plain TypeScript/data; no Svelte or SSE | implemented authoring boundary |
 | `MOD-MODES` | `src/lib/modes` | installed route catalogue and deterministic per-mode release metadata | plain TypeScript; may identify core scenarios but never create engine behaviour | implemented route slice |
-| `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene view types; biomass, positive-productivity, weighted-stress and resource histories; checkpoint-control overlays; reserved run palette; visibility/relative transforms and deterministic downsampling | read-only over `CTR-HISTORY`; no Svelte/browser state | implemented checkpoint-feedback slice |
+| `MOD-PROJECTION` | `src/lib/projections` | framework-neutral temporal/scene/lake view types; histories, checkpoint-control overlays, explicit spectral fields/responses and reserved presentation styles | read-only over run/analysis values; no Svelte/browser state | implemented microbial and Alien Lake slices |
 | `MOD-EVALUATION` | `src/lib/evaluation` | domain-neutral typed evaluation profiles, threshold validation, universal/profile gate execution and evaluation-family contracts | plain TypeScript/data; no Svelte, browser or domain imports | implemented first generic slice |
 | `MOD-CALIBRATION` | `src/lib/calibration` | immutable tuning specs, candidate/evaluation/attempt records, hard-gate-first vectors, Pareto comparison and bounded OpenAI-compatible revision loop | plain TypeScript/data; cannot mutate packs, providers, runs or promotion state | implemented bounded-candidate and model-revision slice |
-| `MOD-ANALYSIS` | `src/lib/analysis` | microbial observations, paired metrics/causal steps, severity-by-duration family, reference qualification assembly and workload/benchmark adapters | read-only over `SimulationRun` values; consumes evaluation/experiment contracts; no Svelte state and no timing in run identity | implemented qualification slice |
+| `MOD-ANALYSIS` | `src/lib/analysis` | domain adapters: microbial evaluation/qualification and Alien Lake composition over generic habitat, response, accounting and wrapper mechanisms | consumes generic contracts; no Svelte state and no timing in canonical identity | implemented microbial qualification plus draft lake integration |
 | `MOD-HELP` | `src/lib/help` | cumulative Curious/Biology/Engine teaching content and isolated concept-demo data | consumes analysis facts; cannot import or mutate app/runtime state | implemented first teaching slice |
 | `MOD-EXPERIMENTS` | `src/lib/experiments` | versioned experiment catalog, manifest/checkpoint hashes, domain-neutral qualification reports, workload budgets and device-timing summaries | depends on contracts, not app state; device timing is never canonical | pinned-input microbial qualification implemented |
 | `MOD-UI` | `src/lib/components` | reusable Svelte components with prop/callback contracts | view contract only; no app stores | prototype |
@@ -197,7 +200,7 @@ Required long-term habitat facts:
 - radiation and shielding;
 - aerosol populations where relevant: composition, phase, particle-size distribution, concentration, altitude, optical behaviour, production and settling.
 
-Compatibility datasets cross this boundary before a runtime adapter exists. A dataset records a schema, pinned provider revision and version, stable system/body/region IDs, master seed and named seed path, physical inputs, numerical provider output and payload hash. The implemented v1 reference fixture carries SSE surface spectral irradiance; it validates the seam but does not replace the live prototype's scalar light input.
+Compatibility datasets cross this boundary before a runtime adapter exists. A dataset records a schema, pinned provider revision and version, stable system/body/region IDs, master seed and named seed path, physical inputs, numerical provider output and payload hash. The implemented v1 reference fixture carries SSE surface spectral irradiance. The microbial reference still uses scalar light; draft Alien Lake is its first direct runtime consumer through a Lab-authored depth/response adapter.
 
 The engine returns quantitative transformation fluxes, deposits and physical changes. Tags such as `hazy`, `oxygenated` or `reef-world` are derived outputs, never the only outputs.
 
@@ -208,6 +211,18 @@ A domain pack declares the provider inputs it requires as stable typed IDs with 
 Physical backstops remain provider-owned. For exobiology, the long-term electromagnetic input is a unit-aware spectral irradiance distribution plus provider-resolved effects, not a biological colour label. Named non-ionising, ionising or heating-relevant bands are typed projections over that field; hazard depends on energy, intensity, exposure and coupling. Evolution-owned capabilities may later carry absorption/response curves and costs, derive accessible biological energy from the local field, and return absorption/reflection/transmission/emission contributions. They cannot override photon energy, pressure, density, phase or provider conservation constraints. Apparent colour is a presentation/observer projection of the returned spectrum under declared illumination.
 
 The implemented Exobiology profile combines pinned SSE spectral curves with authored Lab scalars for radiation, energy gradients, habitat state, liquid-medium availability, solvent activity, transport and the current scripted adapter. It does not assume water: a scenario declares its solvent/medium identity and any solvent-specific acidity scale. Only requirements marked `drives-prototype` are mapped into today's microbial equations; recorded-only values remain hashed facts and explicit non-capabilities. JSON import/export uses the same fixture schema, and re-import reproduces the hash. Other domains may declare entirely different inputs through the same contract, such as mass distributions and angular momentum for galactic formation. Evolution Lab does not import physical solvers; System Lab/SSE adapters satisfy the declared profile.
+
+### `CTR-RESPONSE-FUNCTION` Generic bounded response over a numeric field
+
+A response definition declares stable identity/version/hash; coordinate/value semantics and units; a bounded validity domain; one or more finite bands; conversion efficiency; construction, maintenance and repair costs; evidence status; and limitations. Evaluation requires exact unit/semantic compatibility, integrates incident and captured quantities deterministically, and separately returns captured, accessible, operating-cost and returned-field contributions. The generic evaluator contains no pigment, wavelength or biology branch. Domain packs decide what the field and response mean.
+
+### `CTR-HABITAT-GRAPH` Typed connected habitat graph
+
+A habitat graph is immutable, content-addressed configuration of typed nodes and directed or bidirectional typed links with finite interval-transfer fractions. Stable IDs and generic fact maps carry scenario meaning; the compiler rejects duplicate/dangling identities and invalid transfer bounds. Alien Lake's liquid layers are the first adapter, not core habitat classes.
+
+### `CTR-EXACT-WRAPPER` Exact retained-state boundary precursor
+
+An exact wrapper records stable identity/version/hash, source checkpoint, sorted member IDs, a reduced boundary contract, retained member state and declared resume triggers. Expansion validates the complete wrapper hash before returning retained state. Cross-resolution qualification compares named contract observables against declared tolerances. Alien Lake advances retained members and therefore proves only boundary identity, exact re-expansion and presentation-independent outcomes—not computational coarse-graining or recovery of discarded history.
 
 
 ### `CTR-FLUX-ACCOUNTING` Transactional material accounting
@@ -237,7 +252,7 @@ Long quiet spans become epochs with summary curves and checkpoints. Event window
 
 An implemented `SimulationCheckpoint` captures one stored daily boundary: master seed, run manifest and full configuration, authored lineage definitions, the snapshot/event prefix, and the exact rounded runtime state needed to continue. Its canonical content hash excludes no causal input. Validation occurs before resume. Resume rejects a different provider identity and must reproduce the snapshots and events of an uninterrupted run exactly.
 
-A fork manifest records parent checkpoint hash, role, perturbation identity/version/hash, activation day and description. Control and shadow futures share an identical prefix through the checkpoint and activate on the following stored day. Only declared configuration fields may differ. This is a domain-level deterministic fork over the current fixed-step prototype, not yet an event-sourced store, counter-based random-addressing system or browser persistence format.
+A fork manifest records parent checkpoint hash, role, perturbation identity/version/hash, activation day and description. Control and shadow futures share an identical prefix through the checkpoint and activate on the following stored day. Only declared configuration fields may differ. This is a domain-level deterministic fork over the current fixed-step prototype, not yet an event-sourced store or browser persistence format. `randomAt` now provides counter-addressed draws for the Alien Lake variation probe, but the full microbial engine has not migrated every draw to named addressing.
 ### `CTR-SIGNATURE` Generalized environmental memory
 
 Any lineage, geological process, astronomical event or technology may emit a signature contribution:
@@ -508,11 +523,11 @@ Explicit non-claims: scientifically calibrated rates, abiogenesis, species-level
 
 ### `MILESTONE-2` Changing pond
 
-Add periodic environment cycles, dormancy, plastic response, evolutionary response and extinction/recovery. Move the implemented transactions and remaining procedural constants into declared transformations, extend accounting to useful energy and exercise it across a richer integration experiment.
+Alien Lake now exercises provider spectra, costly bounded responses, a scripted disturbance and a closed material ledger across a richer integration experiment. Still add dormancy, plastic response, extinction/recovery, declared transformations and a complete useful-energy ledger before this milestone is complete.
 
 ### `MILESTONE-3` Connected habitats
 
-Add patch graph, dispersal, barriers, refugia, founder effects and lineage splitting. Introduce sparse network performance budgets and Web Worker execution.
+The generic typed patch graph and one refuge are implemented in Alien Lake. Still add general dispersal, barriers, founder effects, lineage splitting, sparse-network performance budgets and Web Worker execution.
 
 ### `MILESTONE-4` Evolutionary exchange
 
@@ -520,7 +535,7 @@ Add capability prerequisites/costs, mutation supply, trait loss, horizontal tran
 
 ### `MILESTONE-5` Recursive individuality
 
-Add composition networks, cooperation/conflict accounting, stable wrapper nodes and failed/reversible transitions.
+Alien Lake implements an exact retained-state wrapper precursor and reversible re-expansion. Still add compute-saving reduced dynamics, recursive composition networks, cooperation/conflict accounting, error-driven refinement and failed transitions.
 
 ### `MILESTONE-6` Living planet adapter
 
@@ -600,6 +615,10 @@ Initial design target per world:
 | `DEC-035` | Use exact integer centi-units exposed as `0.01 model-mass` for the microbial prototype while explicitly withholding SI chemistry, complete energy and provider-physics claims. | accepted; prototype scope only |
 | `DEC-036` | Treat AI or optimiser output only as one schema-constrained immutable candidate: validate typed bounds and authority before deterministic runs, execute hard gates before a Pareto Fitness Vector, preserve held-out seeds, exclude timing/cost from canonical hashes and require human-governed promotion. | accepted; microbial harness and OpenAI-compatible CLI seam implemented |
 | `DEC-037` | Bound model-assisted revision by explicit attempt/token budgets and declared structured-output modes; append immutable attempt evidence, feed back only calibration-seed results, withhold held-out results until review and never promote automatically. | accepted; local/remote OpenAI-compatible loop implemented |
+| `DEC-038` | Compile one generic unit-aware numeric-field response function with bounded bands, efficiency, explicit costs and returned contributions; pigments are domain definitions over the mechanism, not an engine class. | accepted; Alien Lake first consumer |
+| `DEC-039` | Use one content-addressed typed habitat graph for connected patches; Alien Lake layers and transfer semantics remain scenario data rather than core liquid/water types. | accepted; first graph slice implemented |
+| `DEC-040` | Make the first scale-recursion proof an exact retained-state wrapper qualified against an always-detailed control; label it explicitly as non-compute-saving until a reduced model meets an error budget. | accepted; Alien Lake proof implemented |
+| `DEC-041` | Keep Alien Lake inside the existing `/exobiology` workspace as a draft experiment and use counter-addressed named variation so field, response, accounting and wrapper seams are tested without claiming open-ended evolution. | accepted; draft v0.1 implemented |
 
 ## 16. Open questions
 
@@ -619,6 +638,7 @@ Initial design target per world:
 | `OPEN-012` | Minimal universal predicate, persistence and significance schema for authored state/epoch markers? | first planet harness |
 | `OPEN-013` | Structured records, Markdown notebooks or both for experiment observations? | experiment comparison UI |
 | `OPEN-014` | Which modern-device tiers, repeatable benchmark corpus and variable-node synthetic workloads support defensible population-capacity ceilings? | before milestone 3/Web Workers |
+| `OPEN-015` | Which reduced sediment dynamics, observable error budget and refinement policy can replace Alien Lake's exact retained-state wrapper while preserving qualified outcomes? | next scale-recursion slice |
 
 ## 17. Change protocol
 
